@@ -27,7 +27,18 @@ library(nycflights13)
 
 data <- flights |> 
   filter(!is.na(dep_delay)) |>
-  mutate(y = dep_delay <= 0)
+  mutate(y = dep_delay <= 0)  # on time
+
+data |> select(year, month, day, origin, dest, carrier, y) |> head()
+#> # A tibble: 6 × 7
+#>    year month   day origin dest  carrier y    
+#>   <int> <int> <int> <chr>  <chr> <chr>   <lgl>
+#> 1  2013     1     1 EWR    IAH   UA      FALSE
+#> 2  2013     1     1 LGA    IAH   UA      FALSE
+#> 3  2013     1     1 JFK    MIA   AA      FALSE
+#> 4  2013     1     1 JFK    BQN   B6      TRUE 
+#> 5  2013     1     1 LGA    ATL   DL      TRUE 
+#> 6  2013     1     1 EWR    ORD   UA      TRUE
 
 data1 <- data |> filter(month == 9L)
 data2 <- data |> filter(month == 12L)
