@@ -1,4 +1,4 @@
-#' @import ggplot2 dplyr stringr
+#' @import dplyr ggplot2 stringr
 #'
 #' @export
 ShipOfTheseus <- R6::R6Class(
@@ -17,7 +17,7 @@ ShipOfTheseus <- R6::R6Class(
       private$labels <- labels
     },
 
-    overhaul = function(target_col) {
+    table = function(target_col) {
       target_col <- rlang::ensym(target_col) |> rlang::as_string()
 
       data1 <- private$data1
@@ -36,7 +36,7 @@ ShipOfTheseus <- R6::R6Class(
       for (name in names2) {
         data_temp_split <- data1_split
         data_temp_split[name] <- data2_split[name]
-        data_temp <- data_temp_split |> purrr::reduce(rbind)
+        data_temp <- Reduce(rbind, data_temp_split)
 
         score_new <- data_temp |> summarise(score = mean(y)) |> pull(score)
         diff <- score_new - score1
@@ -46,7 +46,7 @@ ShipOfTheseus <- R6::R6Class(
       for (name in names2) {
         data_temp_split <- data2_split
         data_temp_split[name] <- data1_split[name]
-        data_temp <- data_temp_split |> purrr::reduce(rbind)
+        data_temp <- Reduce(rbind, data_temp_split)
 
         score_new <- data_temp |> summarise(score = mean(y)) |> pull(score)
         diff <- score2 - score_new
@@ -86,7 +86,7 @@ ShipOfTheseus <- R6::R6Class(
       for (name in names2) {
         data_temp_split <- data1_split
         data_temp_split[name] <- data2_split[name]
-        data_temp <- data_temp_split |> purrr::reduce(rbind)
+        data_temp <- Reduce(rbind, data_temp_split)
 
         score_new <- data_temp |> summarise(score = mean(y)) |> pull(score)
         diff <- score_new - score1
@@ -96,7 +96,7 @@ ShipOfTheseus <- R6::R6Class(
       for (name in names2) {
         data_temp_split <- data2_split
         data_temp_split[name] <- data1_split[name]
-        data_temp <- data_temp_split |> purrr::reduce(rbind)
+        data_temp <- Reduce(rbind, data_temp_split)
 
         score_new <- data_temp |> summarise(score = mean(y)) |> pull(score)
         diff <- score2 - score_new
@@ -135,7 +135,7 @@ ShipOfTheseus <- R6::R6Class(
 
       p <- p +
         geom_col(data = data_size, aes(x, n, fill = type), width = 0.7, position = position_dodge()) +
-        scale_fill_manual(values = scales::pal_hue()(4)[c(2,4)], guide = "none")
+        scale_fill_manual(values = c("#7CAE00", "#C77CFF"), guide = "none")
       p$layers <- append(head(p$layers, -1), tail(p$layers, 1), 1)
       p
     },
@@ -160,7 +160,7 @@ ShipOfTheseus <- R6::R6Class(
       for (name in names2) {
         data_temp_split <- data1_split
         data_temp_split[name] <- data2_split[name]
-        data_temp <- data_temp_split |> purrr::reduce(rbind)
+        data_temp <- Reduce(rbind, data_temp_split)
 
         score_new <- data_temp |> summarise(score = mean(y)) |> pull(score)
         diff <- score_new - score1
@@ -170,7 +170,7 @@ ShipOfTheseus <- R6::R6Class(
       for (name in names2) {
         data_temp_split <- data2_split
         data_temp_split[name] <- data1_split[name]
-        data_temp <- data_temp_split |> purrr::reduce(rbind)
+        data_temp <- Reduce(rbind, data_temp_split)
 
         score_new <- data_temp |> summarise(score = mean(y)) |> pull(score)
         diff <- score2 - score_new
@@ -231,7 +231,7 @@ ShipOfTheseus <- R6::R6Class(
 
       p <- p +
         geom_col(data = data_size, aes(x, n, fill = type), width = 0.7, position = position_dodge()) +
-        scale_fill_manual(values = scales::pal_hue()(4)[c(4,2)], guide = "none")
+        scale_fill_manual(values = c("#C77CFF", "#7CAE00"), guide = "none")
       p$layers <- append(head(p$layers, -1), tail(p$layers, 1), 1)
       p
     }

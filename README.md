@@ -43,7 +43,7 @@ library(Theseus)
 
 ship <- create_ship(data1, data2, labels = c("2013-09", "2013-12"))
 
-ship$overhaul(origin)
+ship$table(origin)
 #> # A tibble: 3 × 6
 #>   items    mean     min     max size1 size2
 #>   <chr>   <dbl>   <dbl>   <dbl> <int> <int>
