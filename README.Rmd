@@ -1,0 +1,66 @@
+---
+output: github_document
+---
+
+<!-- README.md is generated from README.Rmd. Please edit that file -->
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  fig.path = "man/figures/README-",
+  out.width = "100%",
+  message = FALSE,
+  out.width = 500
+)
+```
+
+# Theseus
+
+<!-- badges: start -->
+<!-- badges: end -->
+
+The goal of Theseus is to ...
+
+## Installation
+
+You can install the development version of Theseus like so:
+
+``` r
+remotes::install_github("hoxo-m/Theseus")
+```
+
+## Example
+
+This is a basic example which shows you how to solve a common problem:
+
+```{r}
+library(dplyr)
+library(nycflights13)
+
+data <- flights |> 
+  filter(!is.na(dep_delay)) |>
+  mutate(y = dep_delay <= 0)
+
+data1 <- data |> filter(month == 9L)
+data2 <- data |> filter(month == 12L)
+
+data1 |> summarise(y = mean(y)) |> pull(y)
+data2 |> summarise(y = mean(y)) |> pull(y)
+```
+
+```{r example}
+library(Theseus)
+
+ship <- create_ship(data1, data2, labels = c("2013-09", "2013-12"))
+
+ship$overhaul(origin)
+```
+
+```{r}
+ship$plot(origin)
+```
+
+```{r}
+ship$plot_flip(carrier)
+```

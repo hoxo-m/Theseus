@@ -1,0 +1,30 @@
+Package: Theseus
+Type: Package
+Title: What the Package Does (Title Case)
+Version: 0.0.0.9000
+Authors@R: c(
+    person("Koji", "Makiyama", , "hoxo.smile@gmail.com", role = c("aut", "cre", "cph")),
+    person("Shinichi", "Takayanagi", , "shinichi.takayanagi@gmail.com", role = "med"),
+    person("LY Corporation Analytics Solution Enhancement Team", role = "spn")
+  )
+Description: More about what it does (maybe more than one line).
+    Continuation lines should be indented.
+License: What license is it under?
+Encoding: UTF-8
+LazyData: true
+RoxygenNote: 7.3.2
+Depends: 
+    R (>= 4.1.0)
+Imports:
+    ggplot2,
+    dplyr,
+    R6,
+    rlang,
+    waterfalls,
+    purrr,
+    tibble,
+    tidyr,
+    scales,
+    stringr
+Suggests:
+    nycflights13
