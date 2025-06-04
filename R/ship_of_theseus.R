@@ -66,7 +66,7 @@ ShipOfTheseus <- R6::R6Class(
         arrange(desc(abs(mean)))
     },
 
-    plot = function(target_col) {
+    plot = function(target_col, main_item = NULL) {
       target_col <- rlang::ensym(target_col) |> rlang::as_string()
 
       data1 <- private$data1
@@ -121,10 +121,15 @@ ShipOfTheseus <- R6::R6Class(
         result, calc_total = TRUE, total_axis_text = labels[2],
         total_rect_text_color = "black", total_rect_color = "#00BFC4")
 
-      data_max <- result |> tail(-1) |> filter(abs(amount) == max(abs(amount)))
-      max_item <- data_max |> pull(items)
-      max_amount <- data_max |> pull(amount) |> abs()
-      n_max <- data_size |> filter(items == max_item) |> pull(n)
+      if (is.null(main_item)) {
+        data_max <- result |> tail(-1) |> filter(abs(amount) == max(abs(amount)))
+        max_item <- data_max |> pull(items)
+        max_amount <- data_max |> pull(amount) |> abs()
+        n_max <- data_size |> filter(items == max_item) |> pull(n)
+      } else {
+        max_amount <- result |> filter(items == main_item) |> pull(amount) |> abs()
+        n_max <- data_size |> filter(items == main_item) |> pull(n)
+      }
 
       levels <- c(labels[1], names, labels[2])
       data_size <- p$data |> select(x) |> distinct() |>
@@ -140,7 +145,7 @@ ShipOfTheseus <- R6::R6Class(
       p
     },
 
-    plot_flip = function(target_col) {
+    plot_flip = function(target_col, main_item = NULL) {
       target_col <- rlang::ensym(target_col) |> rlang::as_string()
 
       data1 <- private$data1
@@ -217,10 +222,15 @@ ShipOfTheseus <- R6::R6Class(
         }
       }
 
-      data_max <- result |> tail(-1) |> filter(abs(amount) == max(abs(amount)))
-      max_item <- data_max |> pull(items)
-      max_amount <- data_max |> pull(amount) |> abs()
-      n_max <- data_size |> filter(items == max_item) |> pull(n)
+      if (is.null(main_item)) {
+        data_max <- result |> tail(-1) |> filter(abs(amount) == max(abs(amount)))
+        max_item <- data_max |> pull(items)
+        max_amount <- data_max |> pull(amount) |> abs()
+        n_max <- data_size |> filter(items == max_item) |> pull(n)
+      } else {
+        max_amount <- result |> filter(items == main_item) |> pull(amount) |> abs()
+        n_max <- data_size |> filter(items == main_item) |> pull(n)
+      }
 
       levels <- c(labels[2], names, labels[1])
       data_size <- p$data |> select(x) |> distinct() |>
