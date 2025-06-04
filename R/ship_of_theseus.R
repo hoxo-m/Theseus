@@ -17,55 +17,6 @@ ShipOfTheseus <- R6::R6Class(
       private$labels <- labels
     },
 
-    table2 = function(target_col) {
-      target_col <- rlang::ensym(target_col) |> rlang::as_string()
-
-      data1 <- private$data1
-      data2 <- private$data2
-
-      data1_split <- split(data1, data1[[target_col]])
-      data2_split <- split(data2, data2[[target_col]])
-
-      names1 <- names(data1_split)
-      names2 <- names(data2_split)
-
-      score1 <- data1 |> summarise(score = mean(y)) |> pull(score)
-      score2 <- data2 |> summarise(score = mean(y)) |> pull(score)
-
-      result <- tibble::tibble()
-      for (name in names2) {
-        data_temp_split <- data1_split
-        data_temp_split[name] <- data2_split[name]
-        data_temp <- Reduce(rbind, data_temp_split)
-
-        score_new <- data_temp |> summarise(score = mean(y)) |> pull(score)
-        diff <- score_new - score1
-        res <- tibble::tibble(items = name, amount = diff)
-        result <- rbind(result, res)
-      }
-      for (name in names2) {
-        data_temp_split <- data2_split
-        data_temp_split[name] <- data1_split[name]
-        data_temp <- Reduce(rbind, data_temp_split)
-
-        score_new <- data_temp |> summarise(score = mean(y)) |> pull(score)
-        diff <- score2 - score_new
-        res <- tibble::tibble(items = name, amount = diff)
-        result <- rbind(result, res)
-      }
-
-      data1_size <- data1 |> count(items = !!rlang::sym(target_col), name = "size1")
-      data2_size <- data2 |> count(items = !!rlang::sym(target_col), name = "size2")
-      data_size <- data1_size |> full_join(data2_size, by = "items") |>
-        tidyr::replace_na(list(size1 = 0L, size2 = 0L))
-
-      result |>
-        group_by(items) |>
-        summarise(mean = mean(amount), min = min(amount), max = max(amount)) |>
-        left_join(data_size, by = "items") |>
-        arrange(desc(abs(mean)))
-    },
-
     table = function(target_col) {
       target_col <- rlang::ensym(target_col) |> rlang::as_string()
 
@@ -99,7 +50,7 @@ ShipOfTheseus <- R6::R6Class(
         res <- tibble::tibble(items = name, amount = diff)
         result <- rbind(result, res)
       }
-      for (name in names2) {
+      for (name in names1) {
         df_temp <- df2
         if (name %in% names2) {
           df_temp[df_temp[[target_col]] == name, ] <- df1[df1[[target_col]] == name, ]
@@ -132,32 +83,42 @@ ShipOfTheseus <- R6::R6Class(
       data2 <- private$data2
       labels <- private$labels
 
-      data1_split <- split(data1, data1[[target_col]])
-      data2_split <- split(data2, data2[[target_col]])
+      df1 <- data1 |>
+        group_by(!!rlang::sym(target_col)) |>
+        summarise(y = sum(y), n = n(), rate = y / n)
+      df2 <- data2 |>
+        group_by(!!rlang::sym(target_col)) |>
+        summarise(y = sum(y), n = n(), rate = y / n)
 
-      names1 <- names(data1_split)
-      names2 <- names(data2_split)
+      names1 <- df1[[target_col]]
+      names2 <- df2[[target_col]]
 
       score1 <- data1 |> summarise(score = mean(y)) |> pull(score)
       score2 <- data2 |> summarise(score = mean(y)) |> pull(score)
 
       result <- tibble::tibble()
       for (name in names2) {
-        data_temp_split <- data1_split
-        data_temp_split[name] <- data2_split[name]
-        data_temp <- Reduce(rbind, data_temp_split)
+        df_temp <- df1
+        if (name %in% names1) {
+          df_temp[df_temp[[target_col]] == name, ] <- df2[df2[[target_col]] == name, ]
+        } else {
+          df_temp <- rbind(df_temp, df2[df2[[target_col]] == name, ])
+        }
 
-        score_new <- data_temp |> summarise(score = mean(y)) |> pull(score)
+        score_new <- df_temp |> summarise(score = sum(y) / sum(n)) |> pull(score)
         diff <- score_new - score1
         res <- tibble::tibble(items = name, amount = diff)
         result <- rbind(result, res)
       }
-      for (name in names2) {
-        data_temp_split <- data2_split
-        data_temp_split[name] <- data1_split[name]
-        data_temp <- Reduce(rbind, data_temp_split)
+      for (name in names1) {
+        df_temp <- df2
+        if (name %in% names2) {
+          df_temp[df_temp[[target_col]] == name, ] <- df1[df1[[target_col]] == name, ]
+        } else {
+          df_temp <- rbind(df_temp, df1[df1[[target_col]] == name, ])
+        }
 
-        score_new <- data_temp |> summarise(score = mean(y)) |> pull(score)
+        score_new <- df_temp |> summarise(score = sum(y) / sum(n)) |> pull(score)
         diff <- score2 - score_new
         res <- tibble::tibble(items = name, amount = diff)
         result <- rbind(result, res)
@@ -184,10 +145,10 @@ ShipOfTheseus <- R6::R6Class(
         data_max <- result |> tail(-1) |> filter(abs(amount) == max(abs(amount)))
         max_item <- data_max |> pull(items)
         max_amount <- data_max |> pull(amount) |> abs()
-        n_max <- data_size |> filter(items == max_item) |> pull(n)
+        n_max <- data_size |> filter(items == max_item) |> pull(n) |> max()
       } else {
         max_amount <- result |> filter(items == main_item) |> pull(amount) |> abs()
-        n_max <- data_size |> filter(items == main_item) |> pull(n)
+        n_max <- data_size |> filter(items == main_item) |> pull(n) |> max()
       }
 
       levels <- c(labels[1], names, labels[2])
@@ -211,32 +172,42 @@ ShipOfTheseus <- R6::R6Class(
       data2 <- private$data2
       labels <- private$labels
 
-      data1_split <- split(data1, data1[[target_col]])
-      data2_split <- split(data2, data2[[target_col]])
+      df1 <- data1 |>
+        group_by(!!rlang::sym(target_col)) |>
+        summarise(y = sum(y), n = n(), rate = y / n)
+      df2 <- data2 |>
+        group_by(!!rlang::sym(target_col)) |>
+        summarise(y = sum(y), n = n(), rate = y / n)
 
-      names1 <- names(data1_split)
-      names2 <- names(data2_split)
+      names1 <- df1[[target_col]]
+      names2 <- df2[[target_col]]
 
       score1 <- data1 |> summarise(score = mean(y)) |> pull(score)
       score2 <- data2 |> summarise(score = mean(y)) |> pull(score)
 
       result <- tibble::tibble()
       for (name in names2) {
-        data_temp_split <- data1_split
-        data_temp_split[name] <- data2_split[name]
-        data_temp <- Reduce(rbind, data_temp_split)
+        df_temp <- df1
+        if (name %in% names1) {
+          df_temp[df_temp[[target_col]] == name, ] <- df2[df2[[target_col]] == name, ]
+        } else {
+          df_temp <- rbind(df_temp, df2[df2[[target_col]] == name, ])
+        }
 
-        score_new <- data_temp |> summarise(score = mean(y)) |> pull(score)
+        score_new <- df_temp |> summarise(score = sum(y) / sum(n)) |> pull(score)
         diff <- score_new - score1
         res <- tibble::tibble(items = name, amount = diff)
         result <- rbind(result, res)
       }
-      for (name in names2) {
-        data_temp_split <- data2_split
-        data_temp_split[name] <- data1_split[name]
-        data_temp <- Reduce(rbind, data_temp_split)
+      for (name in names1) {
+        df_temp <- df2
+        if (name %in% names2) {
+          df_temp[df_temp[[target_col]] == name, ] <- df1[df1[[target_col]] == name, ]
+        } else {
+          df_temp <- rbind(df_temp, df1[df1[[target_col]] == name, ])
+        }
 
-        score_new <- data_temp |> summarise(score = mean(y)) |> pull(score)
+        score_new <- df_temp |> summarise(score = sum(y) / sum(n)) |> pull(score)
         diff <- score2 - score_new
         res <- tibble::tibble(items = name, amount = diff)
         result <- rbind(result, res)
@@ -285,10 +256,10 @@ ShipOfTheseus <- R6::R6Class(
         data_max <- result |> tail(-1) |> filter(abs(amount) == max(abs(amount)))
         max_item <- data_max |> pull(items)
         max_amount <- data_max |> pull(amount) |> abs()
-        n_max <- data_size |> filter(items == max_item) |> pull(n)
+        n_max <- data_size |> filter(items == max_item) |> pull(n) |> max()
       } else {
         max_amount <- result |> filter(items == main_item) |> pull(amount) |> abs()
-        n_max <- data_size |> filter(items == main_item) |> pull(n)
+        n_max <- data_size |> filter(items == main_item) |> pull(n) |> max()
       }
 
       levels <- c(labels[2], names, labels[1])
