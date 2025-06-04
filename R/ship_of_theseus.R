@@ -17,7 +17,7 @@ ShipOfTheseus <- R6::R6Class(
       private$labels <- labels
     },
 
-    table = function(target_col) {
+    table2 = function(target_col) {
       target_col <- rlang::ensym(target_col) |> rlang::as_string()
 
       data1 <- private$data1
@@ -66,7 +66,7 @@ ShipOfTheseus <- R6::R6Class(
         arrange(desc(abs(mean)))
     },
 
-    table2 = function(target_col) {
+    table = function(target_col) {
       target_col <- rlang::ensym(target_col) |> rlang::as_string()
 
       data1 <- private$data1
@@ -85,11 +85,14 @@ ShipOfTheseus <- R6::R6Class(
       score1 <- data1 |> summarise(score = mean(y)) |> pull(score)
       score2 <- data2 |> summarise(score = mean(y)) |> pull(score)
 
-      name = names2[1]
       result <- tibble::tibble()
       for (name in names2) {
         df_temp <- df1
-        df_temp[df_temp[[target_col]] == name, ] <- df2[df2[[target_col]] == name, ]
+        if (name %in% names1) {
+          df_temp[df_temp[[target_col]] == name, ] <- df2[df2[[target_col]] == name, ]
+        } else {
+          df_temp <- rbind(df_temp, df2[df2[[target_col]] == name, ])
+        }
 
         score_new <- df_temp |> summarise(score = sum(y) / sum(n)) |> pull(score)
         diff <- score_new - score1
@@ -98,7 +101,11 @@ ShipOfTheseus <- R6::R6Class(
       }
       for (name in names2) {
         df_temp <- df2
-        df_temp[df_temp[[target_col]] == name, ] <- df1[df1[[target_col]] == name, ]
+        if (name %in% names2) {
+          df_temp[df_temp[[target_col]] == name, ] <- df1[df1[[target_col]] == name, ]
+        } else {
+          df_temp <- rbind(df_temp, df1[df1[[target_col]] == name, ])
+        }
 
         score_new <- df_temp |> summarise(score = sum(y) / sum(n)) |> pull(score)
         diff <- score2 - score_new
