@@ -66,6 +66,55 @@ ShipOfTheseus <- R6::R6Class(
         arrange(desc(abs(mean)))
     },
 
+    table2 = function(target_col) {
+      target_col <- rlang::ensym(target_col) |> rlang::as_string()
+
+      df1 <- data1 |>
+        group_by(!!rlang::sym(target_col)) |>
+        summarise(y = sum(y), n = n(), rate = y / n)
+      df2 <- data2 |>
+        group_by(!!rlang::sym(target_col)) |>
+        summarise(y = sum(y), n = n(), rate = y / n)
+
+      names1 <- df1[[target_col]]
+      names2 <- df2[[target_col]]
+
+      score1 <- data1 |> summarise(score = mean(y)) |> pull(score)
+      score2 <- data2 |> summarise(score = mean(y)) |> pull(score)
+
+      name = names2[1]
+      result <- tibble::tibble()
+      for (name in names2) {
+        df_temp <- df1
+        df_temp[df_temp[[target_col]] == name, ] <- df2[df2[[target_col]] == name, ]
+
+        score_new <- df_temp |> summarise(score = sum(y) / sum(n)) |> pull(score)
+        diff <- score_new - score1
+        res <- tibble::tibble(items = name, amount = diff)
+        result <- rbind(result, res)
+      }
+      for (name in names2) {
+        df_temp <- df2
+        df_temp[df_temp[[target_col]] == name, ] <- df1[df1[[target_col]] == name, ]
+
+        score_new <- df_temp |> summarise(score = sum(y) / sum(n)) |> pull(score)
+        diff <- score2 - score_new
+        res <- tibble::tibble(items = name, amount = diff)
+        result <- rbind(result, res)
+      }
+
+      data1_size <- data1 |> count(items = !!rlang::sym(target_col), name = "size1")
+      data2_size <- data2 |> count(items = !!rlang::sym(target_col), name = "size2")
+      data_size <- data1_size |> full_join(data2_size, by = "items") |>
+        tidyr::replace_na(list(size1 = 0L, size2 = 0L))
+
+      result |>
+        group_by(items) |>
+        summarise(mean = mean(amount), min = min(amount), max = max(amount)) |>
+        left_join(data_size, by = "items") |>
+        arrange(desc(abs(mean)))
+    },
+
     plot = function(target_col, main_item = NULL) {
       target_col <- rlang::ensym(target_col) |> rlang::as_string()
 
