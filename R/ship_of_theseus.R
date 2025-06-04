@@ -69,6 +69,9 @@ ShipOfTheseus <- R6::R6Class(
     table2 = function(target_col) {
       target_col <- rlang::ensym(target_col) |> rlang::as_string()
 
+      data1 <- private$data1
+      data2 <- private$data2
+
       df1 <- data1 |>
         group_by(!!rlang::sym(target_col)) |>
         summarise(y = sum(y), n = n(), rate = y / n)
