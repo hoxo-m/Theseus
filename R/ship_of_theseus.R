@@ -64,10 +64,15 @@ ShipOfTheseus <- R6::R6Class(
         result <- rbind(result, res)
       }
 
-      data1_size <- data1 |> count(items = !!rlang::sym(target_col), name = "size1")
-      data2_size <- data2 |> count(items = !!rlang::sym(target_col), name = "size2")
+      # data1_size <- data1 |> count(items = !!rlang::sym(target_col), name = "size1")
+      # data2_size <- data2 |> count(items = !!rlang::sym(target_col), name = "size2")
+      data1_size <- data1 |> group_by(items = !!rlang::sym(target_col)) |>
+        summarise(size1 = n(), success1 = sum(y), rate1 = success1 / size1)
+      data2_size <- data2 |> group_by(items = !!rlang::sym(target_col)) |>
+        summarise(size2 = n(), success2 = sum(y), rate2 = success2 / size2)
       data_size <- data1_size |> full_join(data2_size, by = "items") |>
-        tidyr::replace_na(list(size1 = 0L, size2 = 0L))
+        select(items, starts_with("size"), starts_with("success"), starts_with("rate")) |>
+        tidyr::replace_na(list(size1 = 0L, size2 = 0L, success1 = 0L, success2 = 0L))
 
       result |>
         group_by(items) |>
