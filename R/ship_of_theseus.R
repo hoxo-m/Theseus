@@ -84,7 +84,8 @@ ShipOfTheseus <- R6::R6Class(
         arrange(desc(abs(mean)))
     },
 
-    plot = function(target_col, main_item = NULL, bar_max_value = NULL) {
+    plot = function(target_col, main_item = NULL, bar_max_value = NULL,
+                    levels = NULL) {
       target_col <- rlang::ensym(target_col) |> rlang::as_string()
 
       data1 <- private$data1
@@ -140,6 +141,10 @@ ShipOfTheseus <- R6::R6Class(
         group_by(items) |>
         summarise(amount = mean(amount)) |>
         arrange(amount)
+      if (!is.null(levels)) {
+        levels <- as.character(levels)
+        result <- data.frame(items = levels) |> inner_join(result, by = "items")
+      }
       names <- result$items
       result <- tibble::tibble(items = labels[1], amount = score1) |>
         rbind(result)|>
@@ -176,7 +181,8 @@ ShipOfTheseus <- R6::R6Class(
       p
     },
 
-    plot_flip = function(target_col, main_item = NULL, bar_max_value = NULL) {
+    plot_flip = function(target_col, main_item = NULL, bar_max_value = NULL,
+                         levels = NULL) {
       target_col <- rlang::ensym(target_col) |> rlang::as_string()
 
       data1 <- private$data1
@@ -232,6 +238,10 @@ ShipOfTheseus <- R6::R6Class(
         group_by(items) |>
         summarise(amount = -mean(amount)) |>
         arrange(amount)
+      if (!is.null(levels)) {
+        levels <- as.character(levels) |> rev()
+        result <- data.frame(items = levels) |> inner_join(result, by = "items")
+      }
       names <- result$items
       result <- tibble::tibble(items = labels[2], amount = score2) |>
         rbind(result)|>
