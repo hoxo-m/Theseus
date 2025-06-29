@@ -287,9 +287,14 @@ ShipOfTheseus <- R6::R6Class(
       p
     },
 
+    #' @import forcats
     overhaul = function() {
-      data1 <- private$data1 |> select_if(~ is.character(.x) | is.factor(.x))
-      data2 <- private$data2 |> select_if(~ is.character(.x) | is.factor(.x))
+      data1 <- private$data1 |>
+        select_if(~ is.character(.x) | is.factor(.x)) |>
+        mutate_all(fct_explicit_na)
+      data2 <- private$data2 |>
+        select_if(~ is.character(.x) | is.factor(.x)) |>
+        mutate_all(fct_explicit_na)
 
       vars1 <- names(data1)
       vars2 <- names(data2)
