@@ -155,10 +155,8 @@ ShipOfTheseus <- R6::R6Class(
         max_amount <- result |> filter(items == main_item) |> pull(amount) |> abs()
         n_max <- data_size |> filter(items == main_item) |> pull(n) |> max()
       } else if(!is.null(bar_max_value)) {
-        data_max <- result |> tail(-1) |> filter(abs(amount) == max(abs(amount)))
-        max_item <- data_max |> pull(items)
         max_amount <- bar_max_value
-        n_max <- data_size |> filter(items == max_item) |> pull(n) |> max()
+        n_max <- data_size |> filter(n == max(n)) |> pull(n) |> max()
       }
 
       levels <- c(labels[1], names, labels[2])
@@ -271,10 +269,8 @@ ShipOfTheseus <- R6::R6Class(
         max_amount <- result |> filter(items == main_item) |> pull(amount) |> abs()
         n_max <- data_size |> filter(items == main_item) |> pull(n) |> max()
       } else if(!is.null(bar_max_value)) {
-        data_max <- result |> tail(-1) |> filter(abs(amount) == max(abs(amount)))
-        max_item <- data_max |> pull(items)
         max_amount <- bar_max_value
-        n_max <- data_size |> filter(items == max_item) |> pull(n) |> max()
+        n_max <- data_size |> filter(n == max(n)) |> pull(n) |> max()
       }
 
       levels <- c(labels[2], names, labels[1])
