@@ -288,7 +288,29 @@ ShipOfTheseus <- R6::R6Class(
     },
 
     overhaul = function() {
+      data1 <- private$data1 |> select_if(~ is.character(.x) | is.factor(.x))
+      data2 <- private$data2 |> select_if(~ is.character(.x) | is.factor(.x))
 
+      vars1 <- names(data1)
+      vars2 <- names(data2)
+
+      vars <- intersect(vars1, vars2)
+
+      result <- tibble::tibble()
+      pb <- txtProgressBar(max = length(vars), style = 3L)
+      for (i in seq_along(vars)) {
+        var <- vars[i]
+        if (var == "y") next
+        t <- ship$table(!!rlang::sym(var)) |>
+          mutate(score = abs(mean / (size1 + size2))) |>
+          arrange(desc(score))
+        res <- t |> head(1) |> mutate(var = var) |> select(var, everything())
+        result <- rbind(result, res)
+        setTxtProgressBar(pb, i)
+      }
+      close(pb)
+
+      result |> arrange(desc(score))
     }
   )
 )
