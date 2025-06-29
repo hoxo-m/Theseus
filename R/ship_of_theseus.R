@@ -11,9 +11,12 @@ ShipOfTheseus <- R6::R6Class(
   ),
 
   public = list(
+    #' @import forcats
     initialize = function(data1, data2, labels = c("Original", "Refitted")) {
-      private$data1 <- data1
-      private$data2 <- data2
+      private$data1 <- data1 |>
+        mutate_if(~ is.character(.x) | is.factor(.x), ~ fct_na_value_to_level(.x, level = "(Missing)"))
+      private$data2 <- data2 |>
+        mutate_if(~ is.character(.x) | is.factor(.x), ~ fct_na_value_to_level(.x, level = "(Missing)"))
       private$labels <- labels
     },
 
@@ -287,14 +290,11 @@ ShipOfTheseus <- R6::R6Class(
       p
     },
 
-    #' @import forcats
     overhaul = function() {
       data1 <- private$data1 |>
-        select_if(~ is.character(.x) | is.factor(.x)) |>
-        mutate_all(fct_explicit_na)
+        select_if(~ is.character(.x) | is.factor(.x))
       data2 <- private$data2 |>
-        select_if(~ is.character(.x) | is.factor(.x)) |>
-        mutate_all(fct_explicit_na)
+        select_if(~ is.character(.x) | is.factor(.x))
 
       vars1 <- names(data1)
       vars2 <- names(data2)
