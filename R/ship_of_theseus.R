@@ -81,7 +81,7 @@ ShipOfTheseus <- R6::R6Class(
         arrange(desc(abs(mean)))
     },
 
-    plot = function(target_col, main_item = NULL) {
+    plot = function(target_col, main_item = NULL, bar_max_value = NULL) {
       target_col <- rlang::ensym(target_col) |> rlang::as_string()
 
       data1 <- private$data1
@@ -146,14 +146,19 @@ ShipOfTheseus <- R6::R6Class(
         result, calc_total = TRUE, total_axis_text = labels[2],
         total_rect_text_color = "black", total_rect_color = "#00BFC4")
 
-      if (is.null(main_item)) {
+      if (is.null(main_item) & is.null(bar_max_value)) {
         data_max <- result |> tail(-1) |> filter(abs(amount) == max(abs(amount)))
         max_item <- data_max |> pull(items)
         max_amount <- data_max |> pull(amount) |> abs()
         n_max <- data_size |> filter(items == max_item) |> pull(n) |> max()
-      } else {
+      } else if(!is.null(main_item)) {
         max_amount <- result |> filter(items == main_item) |> pull(amount) |> abs()
         n_max <- data_size |> filter(items == main_item) |> pull(n) |> max()
+      } else if(!is.null(bar_max_value)) {
+        data_max <- result |> tail(-1) |> filter(abs(amount) == max(abs(amount)))
+        max_item <- data_max |> pull(items)
+        max_amount <- bar_max_value
+        n_max <- data_size |> filter(items == max_item) |> pull(n) |> max()
       }
 
       levels <- c(labels[1], names, labels[2])
@@ -170,7 +175,7 @@ ShipOfTheseus <- R6::R6Class(
       p
     },
 
-    plot_flip = function(target_col, main_item = NULL) {
+    plot_flip = function(target_col, main_item = NULL, bar_max_value = NULL) {
       target_col <- rlang::ensym(target_col) |> rlang::as_string()
 
       data1 <- private$data1
@@ -257,14 +262,19 @@ ShipOfTheseus <- R6::R6Class(
         }
       }
 
-      if (is.null(main_item)) {
+      if (is.null(main_item) & is.null(bar_max_value)) {
         data_max <- result |> tail(-1) |> filter(abs(amount) == max(abs(amount)))
         max_item <- data_max |> pull(items)
         max_amount <- data_max |> pull(amount) |> abs()
         n_max <- data_size |> filter(items == max_item) |> pull(n) |> max()
-      } else {
+      } else if(!is.null(main_item)) {
         max_amount <- result |> filter(items == main_item) |> pull(amount) |> abs()
         n_max <- data_size |> filter(items == main_item) |> pull(n) |> max()
+      } else if(!is.null(bar_max_value)) {
+        data_max <- result |> tail(-1) |> filter(abs(amount) == max(abs(amount)))
+        max_item <- data_max |> pull(items)
+        max_amount <- bar_max_value
+        n_max <- data_size |> filter(items == max_item) |> pull(n) |> max()
       }
 
       levels <- c(labels[2], names, labels[1])
@@ -279,6 +289,10 @@ ShipOfTheseus <- R6::R6Class(
         scale_fill_manual(values = c("#C77CFF", "#7CAE00"), guide = "none")
       p$layers <- append(head(p$layers, -1), tail(p$layers, 1), 1)
       p
+    },
+
+    overhaul = function() {
+
     }
   )
 )
