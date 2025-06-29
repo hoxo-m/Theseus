@@ -1,7 +1,7 @@
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
-# Theseus
+# Ship of Theseus
 
 <!-- badges: start -->
 
@@ -55,12 +55,12 @@ library(Theseus)
 ship <- create_ship(data1, data2, labels = c("2013-09", "2013-12"))
 
 ship$table(origin)
-#> # A tibble: 3 × 6
-#>   items    mean     min     max size1 size2
-#>   <chr>   <dbl>   <dbl>   <dbl> <int> <int>
-#> 1 EWR   -0.0953 -0.0953 -0.0953  9407  9445
-#> 2 JFK   -0.0589 -0.0591 -0.0587  8816  8963
-#> 3 LGA   -0.0574 -0.0578 -0.0571  8899  8702
+#> # A tibble: 3 × 10
+#>   items    mean     min     max size1 size2 success1 success2 rate1 rate2
+#>   <chr>   <dbl>   <dbl>   <dbl> <int> <int>    <int>    <int> <dbl> <dbl>
+#> 1 EWR   -0.0953 -0.0953 -0.0953  9407  9445     6457     3895 0.686 0.412
+#> 2 JFK   -0.0589 -0.0591 -0.0587  8816  8963     6167     4659 0.700 0.520
+#> 3 LGA   -0.0574 -0.0578 -0.0571  8899  8702     6683     5006 0.751 0.575
 ```
 
 ``` r

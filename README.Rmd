@@ -15,7 +15,7 @@ knitr::opts_chunk$set(
 )
 ```
 
-# Theseus
+# Ship of Theseus
 
 <!-- badges: start -->
 <!-- badges: end -->
