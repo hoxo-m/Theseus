@@ -1,13 +1,21 @@
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
-# Ship of Theseus
+# Theseus Plot: Visualizing Differences through Replacement in Rate Metrics
 
 <!-- badges: start -->
 
 <!-- badges: end -->
 
-The goal of Theseus is to …
+## 1. Overview
+
+In data analysis, differences in metrics between groups often prompt
+questions about which attributes are responsible for the observed
+variation. For instance, in A/B testing, you might want to assess
+whether gender differences contribute to the observed change in a key
+metric. However, such analysis becomes challenging when the metrics are
+rates, as they cannot be aggregated across attributes in the same way
+volume metrics can.
 
 ## Installation
 
