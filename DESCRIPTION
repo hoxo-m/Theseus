@@ -16,6 +16,7 @@ Imports:
     dplyr,
     ggplot2,
     forcats,
+    memoise,
     R6,
     rlang,
     stringr,

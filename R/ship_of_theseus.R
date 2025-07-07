@@ -72,6 +72,7 @@ ShipOfTheseus <- R6::R6Class(
   ),
 
   public = list(
+
     initialize = function(data1, data2, labels = c("Original", "Refitted")) {
       private$data1 <- data1 |>
         mutate_if(~ is.character(.x) | is.factor(.x), ~ forcats::fct_na_value_to_level(.x, level = "(Missing)"))
@@ -94,7 +95,6 @@ ShipOfTheseus <- R6::R6Class(
       labels <- private$labels
 
       score1 <- data1 |> summarise(score = mean(y)) |> pull(score)
-      score2 <- data2 |> summarise(score = mean(y)) |> pull(score)
 
       data1_size <- data1 |> count(items = !!rlang::sym(column_name)) |> mutate(type = labels[1])
       data2_size <- data2 |> count(items = !!rlang::sym(column_name)) |> mutate(type = labels[2])
@@ -152,7 +152,6 @@ ShipOfTheseus <- R6::R6Class(
       data2 <- private$data2
       labels <- private$labels
 
-      score1 <- data1 |> summarise(score = mean(y)) |> pull(score)
       score2 <- data2 |> summarise(score = mean(y)) |> pull(score)
 
       data1_size <- data1 |> count(items = !!rlang::sym(column_name)) |> mutate(type = labels[1])
