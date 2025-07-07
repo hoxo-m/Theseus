@@ -3,6 +3,5 @@
 export(ShipOfTheseus)
 export(create_ship)
 import(dplyr)
-import(forcats)
 import(ggplot2)
 import(stringr)

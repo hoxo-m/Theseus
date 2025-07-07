@@ -8,6 +8,7 @@ ShipOfTheseus <- R6::R6Class(
     data1 = NULL,
     data2 = NULL,
     labels = NULL,
+
     compute_table = function(column_name) {
       data1 <- private$data1
       data2 <- private$data2
@@ -99,7 +100,9 @@ ShipOfTheseus <- R6::R6Class(
       data2_size <- data2 |> count(items = !!rlang::sym(column_name)) |> mutate(type = labels[2])
       data_size <- rbind(data1_size, data2_size)
 
-      result <- private$compute_table(column_name) |> select(items, contrib)
+      result <- private$compute_table(column_name) |>
+        select(items, contrib) |>
+        arrange(contrib)
 
       if (!is.null(levels)) {
         levels <- as.character(levels)
