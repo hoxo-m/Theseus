@@ -14,27 +14,32 @@ ShipOfTheseus <- R6::R6Class(
 
   public = list(
 
-    initialize = function(data1, data2, labels = c("Original", "Refitted")) {
+    #' @importFrom forcats fct_na_value_to_level
+    initialize = function(data1, data2, outcome, labels) {
+      outcome <- rlang::quo_squash(outcome) |> rlang::as_string()
+
       data1 <- data1 |>
-        mutate_if(~ is.character(.x) | is.factor(.x), ~ forcats::fct_na_value_to_level(.x, level = "(Missing)"))
+        mutate_if(~ is.character(.x) | is.factor(.x), ~ fct_na_value_to_level(.x, level = "(Missing)")) |>
+        rename(.outcome = !!rlang::sym(outcome))
       data2 <- data2 |>
-        mutate_if(~ is.character(.x) | is.factor(.x), ~ forcats::fct_na_value_to_level(.x, level = "(Missing)"))
+        mutate_if(~ is.character(.x) | is.factor(.x), ~ fct_na_value_to_level(.x, level = "(Missing)")) |>
+        rename(.outcome = !!rlang::sym(outcome))
 
       private$labels <- labels
 
       private$compute_scores <- memoise::memoise(function(column_name) {
-        score1 <- data1 |> summarise(score = mean(y)) |> pull(score)
-        score2 <- data2 |> summarise(score = mean(y)) |> pull(score)
+        score1 <- data1 |> summarise(score = mean(.outcome)) |> pull(score)
+        score2 <- data2 |> summarise(score = mean(.outcome)) |> pull(score)
         c(score1, score2)
       })
 
       private$compute_contribution <- memoise::memoise(function(column_name) {
         df1 <- data1 |>
           group_by(!!rlang::sym(column_name)) |>
-          summarise(y = sum(y), n = n(), rate = y / n)
+          summarise(y = sum(.outcome), n = n(), rate = y / n)
         df2 <- data2 |>
           group_by(!!rlang::sym(column_name)) |>
-          summarise(y = sum(y), n = n(), rate = y / n)
+          summarise(y = sum(.outcome), n = n(), rate = y / n)
 
         names1 <- df1[[column_name]]
         names2 <- df2[[column_name]]
@@ -80,10 +85,10 @@ ShipOfTheseus <- R6::R6Class(
       private$compute_info <- memoise::memoise(function(column_name) {
         data1_info <- data1 |>
           group_by(items = !!rlang::sym(column_name)) |>
-          summarise(n1 = n(), x1 = sum(y), rate1 = x1 / n1)
+          summarise(n1 = n(), x1 = sum(.outcome), rate1 = x1 / n1)
         data2_info <- data2 |>
           group_by(items = !!rlang::sym(column_name)) |>
-          summarise(n2 = n(), x2 = sum(y), rate2 = x2 / n2)
+          summarise(n2 = n(), x2 = sum(.outcome), rate2 = x2 / n2)
         data1_info |> full_join(data2_info, by = "items") |>
           select(items, starts_with("n"), starts_with("x"), starts_with("rate")) |>
           tidyr::replace_na(list(n1 = 0L, n2 = 0L, x1 = 0L, x2 = 0L))
@@ -101,18 +106,30 @@ ShipOfTheseus <- R6::R6Class(
 
     },
 
-    table = function(column_name) {
+    table = function(column_name, n = Inf) {
       column_name <- rlang::ensym(column_name) |> rlang::as_string()
       data_contrib <- private$compute_contribution(column_name)
       data_info <- private$compute_info(column_name)
       result <- data_contrib |>
         left_join(data_info, by = "items") |>
         arrange(desc(abs(contrib)))
+      n_items <- nrow(result)
+      if (n_items > n) {
+        n_other <- n_items - n + 1L
+        result_head <- head(result, n - 1L)
+        result_tail <- tail(result, n_other)
+        result_other <- result_tail |>
+          mutate(items = str_glue("Sum of {n_other} other attributes")) |>
+          group_by(items) |>
+          summarise_at(vars(contrib, n1, n2, x1, x2), sum) |>
+          mutate(rate1 = x1 / n1, rate2 = x2 / n2)
+        result <- rbind(result_head, result_other)
+      }
       names(result)[1] <- column_name
       result
     },
 
-    plot = function(column_name, main_item = NULL, bar_max_value = NULL,
+    plot = function(column_name, n = 10L, main_item = NULL, bar_max_value = NULL,
                     levels = NULL) {
       column_name <- rlang::ensym(column_name) |> rlang::as_string()
 
@@ -121,7 +138,9 @@ ShipOfTheseus <- R6::R6Class(
       score1 <- private$compute_scores(column_name)[1]
       data_size <- private$compute_size(column_name)
 
-      result <- private$compute_contribution(column_name) |> arrange(contrib)
+      result <- self$table(!!rlang::sym(column_name), n = n) |>
+        select(items = 1L, contrib) |>
+        arrange(contrib)
 
       if (!is.null(levels)) {
         levels <- as.character(levels)
@@ -163,7 +182,7 @@ ShipOfTheseus <- R6::R6Class(
       p
     },
 
-    plot_flip = function(column_name, main_item = NULL, bar_max_value = NULL,
+    plot_flip = function(column_name, n = 10L, main_item = NULL, bar_max_value = NULL,
                          levels = NULL) {
       column_name <- rlang::ensym(column_name) |> rlang::as_string()
 
@@ -172,8 +191,10 @@ ShipOfTheseus <- R6::R6Class(
       score2 <- private$compute_scores(column_name)[2]
       data_size <- private$compute_size(column_name)
 
-      result <- private$compute_contribution(column_name) |>
-        mutate(contrib = -contrib) |> arrange(contrib)
+      result <- self$table(!!rlang::sym(column_name), n = n) |>
+        select(items = 1L, contrib) |>
+        mutate(contrib = -contrib) |>
+        arrange(contrib)
 
       if (!is.null(levels)) {
         levels <- as.character(levels) |> rev()
