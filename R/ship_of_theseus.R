@@ -94,14 +94,30 @@ ShipOfTheseus <- R6::R6Class(
           tidyr::replace_na(list(n1 = 0L, n2 = 0L, x1 = 0L, x2 = 0L))
       })
 
-      private$compute_size <- memoise::memoise(function(column_name) {
+      private$compute_size <- memoise::memoise(function(column_name, target) {
         data1_size <- data1 |>
+          filter(!!rlang::sym(column_name) %in% target) |>
           count(items = !!rlang::sym(column_name)) |>
           mutate(type = labels[1])
         data2_size <- data2 |>
+          filter(!!rlang::sym(column_name) %in% target) |>
           count(items = !!rlang::sym(column_name)) |>
           mutate(type = labels[2])
-        rbind(data1_size, data2_size)
+        item_names <- unique(c(data1_size$items, data2_size$items))
+        other_name <- target[!(target %in% item_names)]
+        if (length(other_name) == 0L) {
+          bind_rows(data1_size, data2_size)
+        } else {
+          data1_size_other <- data1 |>
+            filter(!(!!rlang::sym(column_name) %in% target)) |>
+            count() |>
+            mutate(type = labels[1], items = other_name)
+          data2_size_other <- data1 |>
+            filter(!(!!rlang::sym(column_name) %in% target)) |>
+            count() |>
+            mutate(type = labels[2], items = other_name)
+          bind_rows(data1_size, data1_size_other, data2_size, data2_size_other)
+        }
       })
 
     },
@@ -136,11 +152,11 @@ ShipOfTheseus <- R6::R6Class(
       labels <- private$labels
 
       score1 <- private$compute_scores(column_name)[1]
-      data_size <- private$compute_size(column_name)
 
       result <- self$table(!!rlang::sym(column_name), n = n) |>
         select(items = 1L, contrib) |>
         arrange(contrib)
+      data_size <- private$compute_size(column_name, target = result$items)
 
       if (!is.null(levels)) {
         levels <- as.character(levels)
@@ -189,12 +205,12 @@ ShipOfTheseus <- R6::R6Class(
       labels <- private$labels
 
       score2 <- private$compute_scores(column_name)[2]
-      data_size <- private$compute_size(column_name)
 
       result <- self$table(!!rlang::sym(column_name), n = n) |>
         select(items = 1L, contrib) |>
         mutate(contrib = -contrib) |>
         arrange(contrib)
+      data_size <- private$compute_size(column_name, target = result$items)
 
       if (!is.null(levels)) {
         levels <- as.character(levels) |> rev()
