@@ -43,10 +43,10 @@ library(dplyr)
 library(nycflights13)
 
 data <- flights |> 
-  filter(!is.na(dep_delay)) |>
-  mutate(on_time = dep_delay <= 0)  # on time
+  filter(!is.na(arr_delay)) |>
+  mutate(on_time = arr_delay <= 0)  # arrived on time
 
-data |> select(year, month, day, origin, dest, carrier, on_time) |> head()
+data |> select(year, month, day, origin, dest, carrier, dep_delay, on_time) |> head()
 
 data1 <- data |> filter(month == 9L)
 data2 <- data |> filter(month == 12L)
@@ -58,7 +58,7 @@ data2 |> summarise(on_time_rate = mean(on_time)) |> pull(on_time_rate)
 ```{r example}
 library(Theseus)
 
-ship <- create_ship(data1, data2, on_time, labels = c("2013-09", "2013-12"))
+ship <- create_ship(data1, data2, y = on_time, labels = c("2013-09", "2013-12"))
 
 ship$table(origin)
 ```
@@ -69,4 +69,8 @@ ship$plot(origin)
 
 ```{r}
 ship$plot_flip(carrier)
+```
+
+```{r}
+ship$plot_flip(dep_delay)
 ```

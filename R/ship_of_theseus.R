@@ -7,6 +7,7 @@ ShipOfTheseus <- R6::R6Class(
   private = list(
     labels = NULL,
     compute_scores = NULL,
+    to_factor = NULL,
     compute_contribution = NULL,
     compute_info = NULL,
     compute_size = NULL
@@ -19,10 +20,12 @@ ShipOfTheseus <- R6::R6Class(
       outcome <- rlang::quo_squash(outcome) |> rlang::as_string()
 
       data1 <- data1 |>
-        mutate_if(~ is.character(.x) | is.factor(.x), ~ fct_na_value_to_level(.x, level = "(Missing)")) |>
+        mutate_if(is.character, ~ fct_na_value_to_level(.x, level = "(Missing)") |> as.character()) |>
+        mutate_if(is.factor, ~ fct_na_value_to_level(.x, level = "(Missing)")) |>
         rename(.outcome = !!rlang::sym(outcome))
       data2 <- data2 |>
-        mutate_if(~ is.character(.x) | is.factor(.x), ~ fct_na_value_to_level(.x, level = "(Missing)")) |>
+        mutate_if(is.character, ~ fct_na_value_to_level(.x, level = "(Missing)") |> as.character()) |>
+        mutate_if(is.factor, ~ fct_na_value_to_level(.x, level = "(Missing)")) |>
         rename(.outcome = !!rlang::sym(outcome))
 
       private$labels <- labels
@@ -33,7 +36,29 @@ ShipOfTheseus <- R6::R6Class(
         c(score1, score2)
       })
 
-      private$compute_contribution <- memoise::memoise(function(column_name) {
+      private$to_factor <- memoise::memoise(function(column_name, config_continuous) {
+        values <- c(data1[[column_name]], data2[[column_name]])
+        breaks <- compute_breaks(values, break_num = config_continuous$n)
+
+        df1 <- data1
+        df2 <- data2
+
+        df1[[column_name]] <- cut(df1[[column_name]], breaks = breaks, include.lowest = TRUE)
+        df2[[column_name]] <- cut(df2[[column_name]], breaks = breaks, include.lowest = TRUE)
+
+        df1[[column_name]] <- fct_na_value_to_level(df1[[column_name]], level = "(Missing)")
+        df2[[column_name]] <- fct_na_value_to_level(df2[[column_name]], level = "(Missing)")
+
+        list(df1, df2)
+      })
+
+      private$compute_contribution <- memoise::memoise(function(column_name, config_continuous) {
+        if (is.numeric(data1[[column_name]])) {
+          data_list <- private$to_factor(column_name, config_continuous)
+          data1 <- data_list[[1]]
+          data2 <- data_list[[2]]
+        }
+
         df1 <- data1 |>
           group_by(!!rlang::sym(column_name)) |>
           summarise(y = sum(.outcome), n = n(), rate = y / n)
@@ -76,13 +101,24 @@ ShipOfTheseus <- R6::R6Class(
           result <- rbind(result, res)
         }
 
+        if (is.factor(names1)) {
+          names <- forcats::fct_c(names1, names2)
+          result <- result |>
+            mutate(items = factor(items, levels = levels(names)))
+        }
         result |>
           group_by(items) |>
           summarise(contrib = mean(amount)) |>
           mutate(contrib = (score2 - score1) * contrib / sum(contrib))
       })
 
-      private$compute_info <- memoise::memoise(function(column_name) {
+      private$compute_info <- memoise::memoise(function(column_name, config_continuous) {
+        if (is.numeric(data1[[column_name]])) {
+          data_list <- private$to_factor(column_name, config_continuous)
+          data1 <- data_list[[1]]
+          data2 <- data_list[[2]]
+        }
+
         data1_info <- data1 |>
           group_by(items = !!rlang::sym(column_name)) |>
           summarise(n1 = n(), x1 = sum(.outcome), rate1 = x1 / n1)
@@ -94,7 +130,13 @@ ShipOfTheseus <- R6::R6Class(
           tidyr::replace_na(list(n1 = 0L, n2 = 0L, x1 = 0L, x2 = 0L))
       })
 
-      private$compute_size <- memoise::memoise(function(column_name, target) {
+      private$compute_size <- memoise::memoise(function(column_name, target, config_continuous) {
+        if (is.numeric(data1[[column_name]])) {
+          data_list <- private$to_factor(column_name, config_continuous)
+          data1 <- data_list[[1]]
+          data2 <- data_list[[2]]
+        }
+
         data1_size <- data1 |>
           filter(!!rlang::sym(column_name) %in% target) |>
           count(items = !!rlang::sym(column_name)) |>
@@ -105,6 +147,7 @@ ShipOfTheseus <- R6::R6Class(
           mutate(type = labels[2])
         item_names <- unique(c(data1_size$items, data2_size$items))
         other_name <- target[!(target %in% item_names)]
+
         if (length(other_name) == 0L) {
           bind_rows(data1_size, data2_size)
         } else {
@@ -116,55 +159,81 @@ ShipOfTheseus <- R6::R6Class(
             filter(!(!!rlang::sym(column_name) %in% target)) |>
             count() |>
             mutate(type = labels[2], items = other_name)
-          bind_rows(data1_size, data1_size_other, data2_size, data2_size_other)
+          if (is.factor(data1_size$items)) {
+            data1_size <- data1_size |> mutate(items = as.character(items))
+            data2_size <- data2_size |> mutate(items = as.character(items))
+            bind_rows(data1_size, data1_size_other, data2_size, data2_size_other)
+          } else {
+            bind_rows(data1_size, data1_size_other, data2_size, data2_size_other)
+          }
         }
       })
 
     },
 
-    table = function(column_name, n = Inf) {
+    table = function(column_name, n = Inf,
+                     config_continuous = config_continuous_set()) {
       column_name <- rlang::ensym(column_name) |> rlang::as_string()
-      data_contrib <- private$compute_contribution(column_name)
-      data_info <- private$compute_info(column_name)
+      data_contrib <- private$compute_contribution(column_name, config_continuous)
+      data_info <- private$compute_info(column_name, config_continuous)
       result <- data_contrib |>
-        left_join(data_info, by = "items") |>
-        arrange(desc(abs(contrib)))
+        left_join(data_info, by = "items")
+      is_factor <- is.factor(result$items)
+      if (is_factor) {
+        levels <- levels(result$items)
+        result <- result |> arrange(items)
+      } else {
+        result <- result |> arrange(desc(abs(contrib)))
+      }
       n_items <- nrow(result)
       if (n_items > n) {
         n_other <- n_items - n + 1L
-        result_head <- head(result, n - 1L)
-        result_tail <- tail(result, n_other)
+        result_head <- head(result |> arrange(desc(abs(contrib))), n - 1L) |>
+          mutate(items = as.character(items))
+        result_tail <- tail(result |> arrange(desc(abs(contrib))), n_other)
         result_other <- result_tail |>
           mutate(items = str_glue("Sum of {n_other} other attributes")) |>
           group_by(items) |>
           summarise_at(vars(contrib, n1, n2, x1, x2), sum) |>
           mutate(rate1 = x1 / n1, rate2 = x2 / n2)
-        result <- rbind(result_head, result_other)
+        result <- bind_rows(result_head, result_other)
+        if (is_factor) {
+          levels <- c(levels, str_glue("Sum of {n_other} other attributes"))
+          result <- result |>
+            mutate(items = factor(items, levels = levels)) |>
+            arrange(items)
+        }
       }
       names(result)[1] <- column_name
       result
     },
 
     plot = function(column_name, n = 10L, main_item = NULL, bar_max_value = NULL,
-                    levels = NULL) {
+                    levels = NULL, config_continuous = config_continuous_set()) {
       column_name <- rlang::ensym(column_name) |> rlang::as_string()
 
       labels <- private$labels
 
       score1 <- private$compute_scores(column_name)[1]
 
-      result <- self$table(!!rlang::sym(column_name), n = n) |>
-        select(items = 1L, contrib) |>
-        arrange(contrib)
-      data_size <- private$compute_size(column_name, target = result$items)
+      result <- self$table(!!rlang::sym(column_name), n = n, config_continuous = config_continuous) |>
+        select(items = 1L, contrib)
+      is_factor <- is.factor(result$items)
+      if (is_factor) {
+        result <- result |> arrange(items)
+      } else {
+        result <- result |> arrange(contrib)
+      }
+
+      data_size <- private$compute_size(column_name, target = result$items, config_continuous = config_continuous)
 
       if (!is.null(levels)) {
         levels <- as.character(levels)
         result <- data.frame(items = levels) |> inner_join(result, by = "items")
       }
-      names <- result$items
+      names <- as.character(result$items)
       result <- tibble::tibble(items = labels[1], contrib = score1) |>
-        rbind(result)|>
+        bind_rows(result)|>
         mutate(contrib = round(contrib * 100, digits = 3L))
 
       p <- waterfalls::waterfall(
@@ -199,26 +268,32 @@ ShipOfTheseus <- R6::R6Class(
     },
 
     plot_flip = function(column_name, n = 10L, main_item = NULL, bar_max_value = NULL,
-                         levels = NULL) {
+                         levels = NULL, config_continuous = config_continuous_set()) {
       column_name <- rlang::ensym(column_name) |> rlang::as_string()
 
       labels <- private$labels
 
       score2 <- private$compute_scores(column_name)[2]
 
-      result <- self$table(!!rlang::sym(column_name), n = n) |>
+      result <- self$table(!!rlang::sym(column_name), n = n, config_continuous = config_continuous) |>
         select(items = 1L, contrib) |>
-        mutate(contrib = -contrib) |>
-        arrange(contrib)
-      data_size <- private$compute_size(column_name, target = result$items)
+        mutate(contrib = -contrib)
+
+      is_factor <- is.factor(result$items)
+      if (is_factor) {
+        result <- result |> arrange(desc(items))
+      } else {
+        result <- result |> arrange(contrib)
+      }
+      data_size <- private$compute_size(column_name, target = result$items, config_continuous = config_continuous)
 
       if (!is.null(levels)) {
         levels <- as.character(levels) |> rev()
         result <- data.frame(items = levels) |> inner_join(result, by = "items")
       }
-      names <- result$items
+      names <- as.character(result$items)
       result <- tibble::tibble(items = labels[2], contrib = score2) |>
-        rbind(result)|>
+        bind_rows(result)|>
         mutate(contrib = round(contrib * 100, digits = 3L))
 
       colors <- if_else(result$contrib > 0, "#F8766D", "#00BFC4")

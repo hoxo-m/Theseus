@@ -34,41 +34,41 @@ library(dplyr)
 library(nycflights13)
 
 data <- flights |> 
-  filter(!is.na(dep_delay)) |>
-  mutate(on_time = dep_delay <= 0)  # on time
+  filter(!is.na(arr_delay)) |>
+  mutate(on_time = arr_delay <= 0)  # arrived on time
 
-data |> select(year, month, day, origin, dest, carrier, on_time) |> head()
-#> # A tibble: 6 × 7
-#>    year month   day origin dest  carrier on_time
-#>   <int> <int> <int> <chr>  <chr> <chr>   <lgl>  
-#> 1  2013     1     1 EWR    IAH   UA      FALSE  
-#> 2  2013     1     1 LGA    IAH   UA      FALSE  
-#> 3  2013     1     1 JFK    MIA   AA      FALSE  
-#> 4  2013     1     1 JFK    BQN   B6      TRUE   
-#> 5  2013     1     1 LGA    ATL   DL      TRUE   
-#> 6  2013     1     1 EWR    ORD   UA      TRUE
+data |> select(year, month, day, origin, dest, carrier, dep_delay, on_time) |> head()
+#> # A tibble: 6 × 8
+#>    year month   day origin dest  carrier dep_delay on_time
+#>   <int> <int> <int> <chr>  <chr> <chr>       <dbl> <lgl>  
+#> 1  2013     1     1 EWR    IAH   UA              2 FALSE  
+#> 2  2013     1     1 LGA    IAH   UA              4 FALSE  
+#> 3  2013     1     1 JFK    MIA   AA              2 FALSE  
+#> 4  2013     1     1 JFK    BQN   B6             -1 TRUE   
+#> 5  2013     1     1 LGA    ATL   DL             -6 TRUE   
+#> 6  2013     1     1 EWR    ORD   UA             -4 FALSE
 
 data1 <- data |> filter(month == 9L)
 data2 <- data |> filter(month == 12L)
 
 data1 |> summarise(on_time_rate = mean(on_time)) |> pull(on_time_rate)
-#> [1] 0.7118575
+#> [1] 0.7465753
 data2 |> summarise(on_time_rate = mean(on_time)) |> pull(on_time_rate)
-#> [1] 0.5001844
+#> [1] 0.4672835
 ```
 
 ``` r
 library(Theseus)
 
-ship <- create_ship(data1, data2, on_time, labels = c("2013-09", "2013-12"))
+ship <- create_ship(data1, data2, y = on_time, labels = c("2013-09", "2013-12"))
 
 ship$table(origin)
 #> # A tibble: 3 × 8
 #>   origin contrib    n1    n2    x1    x2 rate1 rate2
 #>   <chr>    <dbl> <int> <int> <int> <int> <dbl> <dbl>
-#> 1 EWR    -0.0953  9407  9445  6457  3895 0.686 0.412
-#> 2 JFK    -0.0589  8816  8963  6167  4659 0.700 0.520
-#> 3 LGA    -0.0574  8899  8702  6683  5006 0.751 0.575
+#> 1 EWR    -0.122   9362  9410  7172  3901 0.766 0.415
+#> 2 JFK    -0.0832  8788  8923  6497  4332 0.739 0.485
+#> 3 LGA    -0.0740  8860  8687  6496  4393 0.733 0.506
 ```
 
 ``` r
@@ -82,3 +82,9 @@ ship$plot_flip(carrier)
 ```
 
 <img src="man/figures/README-unnamed-chunk-4-1.png" width="500" />
+
+``` r
+ship$plot_flip(dep_delay)
+```
+
+<img src="man/figures/README-unnamed-chunk-5-1.png" width="500" />
