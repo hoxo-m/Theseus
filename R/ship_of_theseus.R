@@ -37,14 +37,57 @@ ShipOfTheseus <- R6::R6Class(
       })
 
       private$to_factor <- memoise::memoise(function(column_name, config_continuous) {
-        values <- c(data1[[column_name]], data2[[column_name]])
-        breaks <- compute_breaks(values, break_num = config_continuous$n)
+        if (is.null(config_continuous$breaks)) {
+          values <- c(data1[[column_name]], data2[[column_name]])
+          break_num <- config_continuous$n
+          if (config_continuous$split == "width") {
+            if (any(is.na(values))) break_num <- break_num - 1L
+            min <- min(values, na.rm = TRUE)
+            max <- max(values, na.rm = TRUE)
+            breaks <- seq(min, max, length.out = break_num + 1)
+          } else if(config_continuous$split == "count") {
+            breaks <- compute_breaks(values, break_num = break_num)
+          } else {
+            breaks <- compute_breaks(values, break_num = break_num * 20L)
+            breaks <- sort(unique(breaks))
+            d1 <- data1 |>
+              select(x = !!rlang::sym(column_name), y = .outcome) |>
+              filter(!is.na(x))
+            d2 <- data2 |>
+              select(x = !!rlang::sym(column_name), y = .outcome) |>
+              filter(!is.na(x))
+            while (length(breaks) > break_num + 1L) {
+              data1_tmp <- d1 |>
+                mutate(x = cut(x, breaks = breaks, include.lowest = TRUE)) |>
+                group_by(x) |>
+                summarise(y = mean(y)) |>
+                mutate(diff1 = abs(lead(y) - y))
+              data2_tmp <- d1 |>
+                mutate(x = cut(x, breaks = breaks, include.lowest = TRUE)) |>
+                group_by(x) |>
+                summarise(y = mean(y)) |>
+                mutate(diff2 = abs(lead(y) - y))
+              data_tmp <- data1_tmp |> left_join(data2_tmp, by = "x") |>
+                mutate(diff = sqrt(diff1^2 + diff2^2))
+              breaks <- breaks[-(which.min(data_tmp$diff) + 1L)]
+            }
+          }
+          if (config_continuous$pretty) {
+            breaks <- pretty_breaks(breaks)
+            if (any(table(breaks) >= 2)) {
+              warning("Prettying breaks reduced the number of breaks. Try pretty = FALSE.")
+              breaks <- unique(breaks)
+            }
+          }
+        } else {
+          breaks <- config_continuous$breaks
+        }
 
         df1 <- data1
         df2 <- data2
 
-        df1[[column_name]] <- cut(df1[[column_name]], breaks = breaks, include.lowest = TRUE)
-        df2[[column_name]] <- cut(df2[[column_name]], breaks = breaks, include.lowest = TRUE)
+        df1[[column_name]] <- cut(df1[[column_name]], breaks = breaks, include.lowest = TRUE, dig.lab = 50)
+        df2[[column_name]] <- cut(df2[[column_name]], breaks = breaks, include.lowest = TRUE, dig.lab = 50)
 
         df1[[column_name]] <- fct_na_value_to_level(df1[[column_name]], level = "(Missing)")
         df2[[column_name]] <- fct_na_value_to_level(df2[[column_name]], level = "(Missing)")
@@ -264,7 +307,7 @@ ShipOfTheseus <- R6::R6Class(
         geom_col(data = data_size, aes(x, n, fill = type), width = 0.7, position = position_dodge()) +
         scale_fill_manual(values = c("#7CAE00", "#C77CFF"), guide = "none")
       p$layers <- append(head(p$layers, -1), tail(p$layers, 1), 1)
-      p
+      p + ggplot2::ggtitle(NULL, subtitle = column_name)
     },
 
     plot_flip = function(column_name, n = 10L, main_item = NULL, bar_max_value = NULL,
@@ -346,7 +389,7 @@ ShipOfTheseus <- R6::R6Class(
         geom_col(data = data_size, aes(x, n, fill = type), width = 0.7, position = position_dodge()) +
         scale_fill_manual(values = c("#C77CFF", "#7CAE00"), guide = "none")
       p$layers <- append(head(p$layers, -1), tail(p$layers, 1), 1)
-      p
+      p + ggplot2::ggtitle(NULL, subtitle = column_name)
     },
 
     overhaul = function() {
