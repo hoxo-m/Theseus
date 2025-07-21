@@ -1,7 +1,7 @@
 #' @export
-config_continuous_set <- function(n = 10L, pretty = TRUE,
-                                  split = c("count", "width", "rate"),
-                                  breaks = NULL) {
+continuous_config <- function(n = 10L, pretty = TRUE,
+                              split = c("count", "width", "rate"),
+                              breaks = NULL) {
   split <- match.arg(split)
   list(n = n, pretty = pretty, split = split, breaks = breaks)
 }

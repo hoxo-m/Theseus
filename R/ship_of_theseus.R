@@ -36,16 +36,16 @@ ShipOfTheseus <- R6::R6Class(
         c(score1, score2)
       })
 
-      private$to_factor <- memoise::memoise(function(column_name, config_continuous) {
-        if (is.null(config_continuous$breaks)) {
+      private$to_factor <- memoise::memoise(function(column_name, continuous) {
+        if (is.null(continuous$breaks)) {
           values <- c(data1[[column_name]], data2[[column_name]])
-          break_num <- config_continuous$n
-          if (config_continuous$split == "width") {
+          break_num <- continuous$n
+          if (continuous$split == "width") {
             if (any(is.na(values))) break_num <- break_num - 1L
             min <- min(values, na.rm = TRUE)
             max <- max(values, na.rm = TRUE)
             breaks <- seq(min, max, length.out = break_num + 1)
-          } else if(config_continuous$split == "count") {
+          } else if(continuous$split == "count") {
             breaks <- compute_breaks(values, break_num = break_num)
           } else {
             breaks <- compute_breaks(values, break_num = break_num * 20L)
@@ -72,7 +72,7 @@ ShipOfTheseus <- R6::R6Class(
               breaks <- breaks[-(which.min(data_tmp$diff) + 1L)]
             }
           }
-          if (config_continuous$pretty) {
+          if (continuous$pretty) {
             breaks <- pretty_breaks(breaks)
             if (any(table(breaks) >= 2)) {
               warning("Prettying breaks reduced the number of breaks. Try pretty = FALSE.")
@@ -80,7 +80,7 @@ ShipOfTheseus <- R6::R6Class(
             }
           }
         } else {
-          breaks <- config_continuous$breaks
+          breaks <- continuous$breaks
         }
 
         df1 <- data1
@@ -95,9 +95,9 @@ ShipOfTheseus <- R6::R6Class(
         list(df1, df2)
       })
 
-      private$compute_contribution <- memoise::memoise(function(column_name, config_continuous) {
+      private$compute_contribution <- memoise::memoise(function(column_name, continuous) {
         if (is.numeric(data1[[column_name]])) {
-          data_list <- private$to_factor(column_name, config_continuous)
+          data_list <- private$to_factor(column_name, continuous)
           data1 <- data_list[[1]]
           data2 <- data_list[[2]]
         }
@@ -155,9 +155,9 @@ ShipOfTheseus <- R6::R6Class(
           mutate(contrib = (score2 - score1) * contrib / sum(contrib))
       })
 
-      private$compute_info <- memoise::memoise(function(column_name, config_continuous) {
+      private$compute_info <- memoise::memoise(function(column_name, continuous) {
         if (is.numeric(data1[[column_name]])) {
-          data_list <- private$to_factor(column_name, config_continuous)
+          data_list <- private$to_factor(column_name, continuous)
           data1 <- data_list[[1]]
           data2 <- data_list[[2]]
         }
@@ -173,9 +173,9 @@ ShipOfTheseus <- R6::R6Class(
           tidyr::replace_na(list(n1 = 0L, n2 = 0L, x1 = 0L, x2 = 0L))
       })
 
-      private$compute_size <- memoise::memoise(function(column_name, target, config_continuous) {
+      private$compute_size <- memoise::memoise(function(column_name, target, continuous) {
         if (is.numeric(data1[[column_name]])) {
-          data_list <- private$to_factor(column_name, config_continuous)
+          data_list <- private$to_factor(column_name, continuous)
           data1 <- data_list[[1]]
           data2 <- data_list[[2]]
         }
@@ -215,10 +215,10 @@ ShipOfTheseus <- R6::R6Class(
     },
 
     table = function(column_name, n = Inf,
-                     config_continuous = config_continuous_set()) {
+                     continuous = continuous_config()) {
       column_name <- rlang::ensym(column_name) |> rlang::as_string()
-      data_contrib <- private$compute_contribution(column_name, config_continuous)
-      data_info <- private$compute_info(column_name, config_continuous)
+      data_contrib <- private$compute_contribution(column_name, continuous)
+      data_info <- private$compute_info(column_name, continuous)
       result <- data_contrib |>
         left_join(data_info, by = "items")
       is_factor <- is.factor(result$items)
@@ -252,14 +252,14 @@ ShipOfTheseus <- R6::R6Class(
     },
 
     plot = function(column_name, n = 10L, main_item = NULL, bar_max_value = NULL,
-                    levels = NULL, config_continuous = config_continuous_set()) {
+                    levels = NULL, continuous = continuous_config()) {
       column_name <- rlang::ensym(column_name) |> rlang::as_string()
 
       labels <- private$labels
 
       score1 <- private$compute_scores(column_name)[1]
 
-      result <- self$table(!!rlang::sym(column_name), n = n, config_continuous = config_continuous) |>
+      result <- self$table(!!rlang::sym(column_name), n = n, continuous = continuous) |>
         select(items = 1L, contrib)
       is_factor <- is.factor(result$items)
       if (is_factor) {
@@ -268,7 +268,7 @@ ShipOfTheseus <- R6::R6Class(
         result <- result |> arrange(contrib)
       }
 
-      data_size <- private$compute_size(column_name, target = result$items, config_continuous = config_continuous)
+      data_size <- private$compute_size(column_name, target = result$items, continuous = continuous)
 
       if (!is.null(levels)) {
         levels <- as.character(levels)
@@ -311,14 +311,14 @@ ShipOfTheseus <- R6::R6Class(
     },
 
     plot_flip = function(column_name, n = 10L, main_item = NULL, bar_max_value = NULL,
-                         levels = NULL, config_continuous = config_continuous_set()) {
+                         levels = NULL, continuous = continuous_config()) {
       column_name <- rlang::ensym(column_name) |> rlang::as_string()
 
       labels <- private$labels
 
       score2 <- private$compute_scores(column_name)[2]
 
-      result <- self$table(!!rlang::sym(column_name), n = n, config_continuous = config_continuous) |>
+      result <- self$table(!!rlang::sym(column_name), n = n, continuous = continuous) |>
         select(items = 1L, contrib) |>
         mutate(contrib = -contrib)
 
@@ -328,7 +328,7 @@ ShipOfTheseus <- R6::R6Class(
       } else {
         result <- result |> arrange(contrib)
       }
-      data_size <- private$compute_size(column_name, target = result$items, config_continuous = config_continuous)
+      data_size <- private$compute_size(column_name, target = result$items, continuous = continuous)
 
       if (!is.null(levels)) {
         levels <- as.character(levels) |> rev()
