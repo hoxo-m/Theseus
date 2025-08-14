@@ -23,15 +23,17 @@ knitr::opts_chunk$set(
 ## 1. Overview
 
 In data analysis, when a metric differs between two groups, we sometimes want to investigate whether a particular subgroup is driving that difference.
-For example, if a metric has declined compared to the previous year, we may focus on gender among the attributes and examine whether the decline occurred among men, women, or both.
-However, this type of analysis becomes challenging when the metric is a rate, because the magnitude of each subgroup’s contribution to the rate cannot be simply calculated, unlike in the case of volume metrics.
+For example, when a key metric decline is detected compared to the previous year, you may want to conduct a more detailed analysis. 
+In this analysis, you may focus on gender among the attributes and examine whether the decline occurred among male, female, or both.
+However, this type of analysis is challenging when the metric is a rate, because the magnitude of each subgroup’s contribution to the rate cannot be simply calculated, unlike in the case of volume metrics.
 
-To address this issue, we propose an approach inspired by the story of the Ship of Theseus.
+To address this issue, we propose an approach inspired by the story of the *[Ship of Theseus](https://en.wikipedia.org/wiki/Ship_of_Theseus)*.
 This approach involves gradually replacing the components of one group with those of another, recalculating the metric at each step.
 The change in the metric at each step can then be interpreted as the contribution of each subgroup to the overall difference.
 
 For instance, suppose the metric was 6.2% in 2024 and decreased to 5.2% in 2025.
-As before, focusing on gender, we replace the male data within the 2024 dataset with the male data from 2025 and recalculate the metric.
+Again, we focus on gender.
+We replace the male data within the 2024 dataset with the male data from 2025 and recalculate the metric.
 As a result, the metric would drop by 0.8 percentage points, reaching 5.4%.
 In this case, the contribution of the male group to the change in the metric is -0.8 percentage points.
 Next, we replace the female data from 2024 with that from 2025.
@@ -60,10 +62,10 @@ ship <- create_ship(df1, df2, y = y, labels = c("2024", "2025"), digits = 1L)
 ship$plot(gender)
 ```
 
-From this graph, we can see that the decline in the metric is largely attributable to the male group.
+From this plot, we can see that the decline in the metric is primarily driven by the male group.
 We call this visualization the “Theseus Plot.”
 
-The Theseus package is designed to make it easy to generate Theseus Plots for various attributes.
+The **Theseus** package is designed to make it easy to generate Theseus Plots for various attributes.
 
 ## 2. Installation
 
@@ -77,18 +79,23 @@ remotes::install_github("hoxo-m/Theseus")
 
 This is a basic example which shows you how to solve a common problem:
 
-```{r}
+### 3.1 Prepare Data
+
+```{r prepare_data}
 library(dplyr)
 library(nycflights13)
 
 data <- flights |> 
   filter(!is.na(arr_delay)) |>
-  mutate(on_time = arr_delay <= 0)  # arrived on time
+  mutate(on_time = arr_delay <= 0) |>  # arrived on time
+  left_join(airlines, by = "carrier") |>
+  mutate(carrier = name) |>
+  select(year, month, day, origin, dest, carrier, dep_delay, on_time)
 
-data |> select(year, month, day, origin, dest, carrier, dep_delay, on_time) |> head()
+data |> head()
 
-data1 <- data |> filter(month == 9L)
-data2 <- data |> filter(month == 12L)
+data1 <- data |> filter(month == 11)
+data2 <- data |> filter(month == 12)
 
 data1 |> summarise(on_time_rate = mean(on_time)) |> pull(on_time_rate)
 data2 |> summarise(on_time_rate = mean(on_time)) |> pull(on_time_rate)
@@ -97,7 +104,7 @@ data2 |> summarise(on_time_rate = mean(on_time)) |> pull(on_time_rate)
 ```{r}
 library(Theseus)
 
-ship <- create_ship(data1, data2, y = on_time, labels = c("2013-09", "2013-12"))
+ship <- create_ship(data1, data2, y = on_time, labels = c("2013-11", "2013-12"))
 
 ship$table(origin)
 ```
