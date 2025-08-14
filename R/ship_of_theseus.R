@@ -10,13 +10,14 @@ ShipOfTheseus <- R6::R6Class(
     to_factor = NULL,
     compute_contribution = NULL,
     compute_info = NULL,
-    compute_size = NULL
+    compute_size = NULL,
+    digits = NULL
   ),
 
   public = list(
 
     #' @importFrom forcats fct_na_value_to_level
-    initialize = function(data1, data2, outcome, labels) {
+    initialize = function(data1, data2, outcome, labels, digits) {
       outcome <- rlang::quo_squash(outcome) |> rlang::as_string()
 
       data1 <- data1 |>
@@ -29,6 +30,7 @@ ShipOfTheseus <- R6::R6Class(
         rename(.outcome = !!rlang::sym(outcome))
 
       private$labels <- labels
+      private$digits <- digits
 
       private$compute_scores <- memoise::memoise(function(column_name) {
         score1 <- data1 |> summarise(score = mean(.outcome)) |> pull(score)
@@ -277,7 +279,7 @@ ShipOfTheseus <- R6::R6Class(
       names <- as.character(result$items)
       result <- tibble::tibble(items = labels[1], contrib = score1) |>
         bind_rows(result)|>
-        mutate(contrib = round(contrib * 100, digits = 3L))
+        mutate(contrib = round(contrib * 100, digits = private$digits))
 
       p <- waterfalls::waterfall(
         result, calc_total = TRUE, total_axis_text = labels[2],
@@ -337,7 +339,7 @@ ShipOfTheseus <- R6::R6Class(
       names <- as.character(result$items)
       result <- tibble::tibble(items = labels[2], contrib = score2) |>
         bind_rows(result)|>
-        mutate(contrib = round(contrib * 100, digits = 3L))
+        mutate(contrib = round(contrib * 100, digits = private$digits))
 
       colors <- if_else(result$contrib > 0, "#F8766D", "#00BFC4")
       colors[1] <- "#00BFC4"

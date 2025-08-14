@@ -9,23 +9,48 @@
 
 ## 1. Overview
 
-In data analysis, differences in metrics between groups often prompt
-questions about which attributes are responsible for the observed
-variation. For instance, in A/B testing, you might want to assess
-whether gender differences contribute to the observed change in a key
-metric. However, such analysis becomes challenging when the metrics are
-rates, as they cannot be aggregated across attributes in the same way
-volume metrics can.
+In data analysis, when there is a difference in a metric between two
+groups, we sometimes want to investigate whether there is a subgroup
+responsible for that difference. For example, if a certain metric has
+declined compared with the previous year, you may want to know whether
+the decline occurred among men, women, or both. However, such analysis
+becomes challenging when the metric is a ratio, because unlike volume
+metrics, ratios cannot be simply aggregated by attribute.
 
-## Installation
+To address this issue, we propose an approach based on the story of the
+“Ship of Theseus.” This approach involves gradually replacing the
+components of one group with those of another, calculating the metric at
+each step. The difference in the rate metric at each step can be
+regarded as the contribution of each subgroup to the overall metric.
 
-You can install the development version of Theseus like so:
+Now, we suppose the metric was 6.2% in 2024 and decreased to 5.2% in
+2025. And, we suppose that if the male data in 2024 replace with the
+male data from 2025 and recalculate the metric, the value decreases by
+0.8% to 5.4%. In this case, the contribution of the male group to the
+metric change is -0.8%. Furthermore, we replace the female data from
+2024 with that from 2025, the dataset will consist entirely of 2025
+data. Therefore, the metric is 5.2%, which is 0.2% lower than 5.4%, so
+the contribution of the female group is -0.2%.
+
+When visualized as a graph, it looks as follows.
+
+<img src="man/figures/README-overview-1.png" width="500" />
+
+From this graph, we can see that the decline in the metric is largely
+attributable to the male group. We named this graph the “Theseus Plot.”
+
+The **Theseus** package is designed to easily generate Theseus Plots for
+various attributes.
+
+## 2. Installation
+
+You can install the development version from GitHub with:
 
 ``` r
 remotes::install_github("hoxo-m/Theseus")
 ```
 
-## Example
+## 3. Details
 
 This is a basic example which shows you how to solve a common problem:
 
@@ -75,16 +100,16 @@ ship$table(origin)
 ship$plot(origin)
 ```
 
-<img src="man/figures/README-unnamed-chunk-3-1.png" width="500" />
+<img src="man/figures/README-unnamed-chunk-4-1.png" width="500" />
 
 ``` r
 ship$plot_flip(carrier)
 ```
 
-<img src="man/figures/README-unnamed-chunk-4-1.png" width="500" />
+<img src="man/figures/README-unnamed-chunk-5-1.png" width="500" />
 
 ``` r
 ship$plot_flip(dep_delay)
 ```
 
-<img src="man/figures/README-unnamed-chunk-5-1.png" width="500" />
+<img src="man/figures/README-unnamed-chunk-6-1.png" width="500" />
