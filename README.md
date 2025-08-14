@@ -9,38 +9,43 @@
 
 ## 1. Overview
 
-In data analysis, when there is a difference in a metric between two
-groups, we sometimes want to investigate whether there is a subgroup
-responsible for that difference. For example, if a certain metric has
-declined compared with the previous year, you may want to know whether
-the decline occurred among men, women, or both. However, such analysis
-becomes challenging when the metric is a ratio, because unlike volume
-metrics, ratios cannot be simply aggregated by attribute.
+In data analysis, when a metric differs between two groups, we sometimes
+want to investigate whether a particular subgroup is driving that
+difference. For example, if a metric has declined compared to the
+previous year, we may focus on gender among the attributes and examine
+whether the decline occurred among men, women, or both. However, this
+type of analysis becomes challenging when the metric is a rate, because
+the magnitude of each subgroup’s contribution to the rate cannot be
+simply calculated, unlike in the case of volume metrics.
 
-To address this issue, we propose an approach based on the story of the
-“Ship of Theseus.” This approach involves gradually replacing the
-components of one group with those of another, calculating the metric at
-each step. The difference in the rate metric at each step can be
-regarded as the contribution of each subgroup to the overall metric.
+To address this issue, we propose an approach inspired by the story of
+the Ship of Theseus. This approach involves gradually replacing the
+components of one group with those of another, recalculating the metric
+at each step. The change in the metric at each step can then be
+interpreted as the contribution of each subgroup to the overall
+difference.
 
-Now, we suppose the metric was 6.2% in 2024 and decreased to 5.2% in
-2025. And, we suppose that if the male data in 2024 replace with the
-male data from 2025 and recalculate the metric, the value decreases by
-0.8% to 5.4%. In this case, the contribution of the male group to the
-metric change is -0.8%. Furthermore, we replace the female data from
-2024 with that from 2025, the dataset will consist entirely of 2025
-data. Therefore, the metric is 5.2%, which is 0.2% lower than 5.4%, so
-the contribution of the female group is -0.2%.
+For instance, suppose the metric was 6.2% in 2024 and decreased to 5.2%
+in 2025. As before, focusing on gender, we replace the male data within
+the 2024 dataset with the male data from 2025 and recalculate the
+metric. As a result, the metric would drop by 0.8 percentage points,
+reaching 5.4%. In this case, the contribution of the male group to the
+change in the metric is -0.8 percentage points. Next, we replace the
+female data from 2024 with that from 2025. The dataset then consists
+entirely of 2025 data, and the metric drops by 0.2 percentage points,
+reaching 5.2%. Thus, the contribution of the female group is -0.2
+percentage points.
 
-When visualized as a graph, it looks as follows.
+When visualized, the results appear as follows:
 
 <img src="man/figures/README-overview-1.png" width="500" />
 
 From this graph, we can see that the decline in the metric is largely
-attributable to the male group. We named this graph the “Theseus Plot.”
+attributable to the male group. We call this visualization the “Theseus
+Plot.”
 
-The **Theseus** package is designed to easily generate Theseus Plots for
-various attributes.
+The Theseus package is designed to make it easy to generate Theseus
+Plots for various attributes.
 
 ## 2. Installation
 
