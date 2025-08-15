@@ -1,7 +1,7 @@
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
-# Theseus Plot: Visualizing Differences through Replacement in Rate Metrics
+# Theseus Plot: Visualizing Changes through Replacement in Rate Metrics
 
 <!-- badges: start -->
 
@@ -38,7 +38,7 @@ Thus, the contribution of the female group is -0.2 percentage points.
 
 When visualized, the results appear as follows:
 
-<img src="man/figures/README-overview-1.png" width="500" />
+![](man/figures/README-overview-1.png)<!-- -->
 
 From this plot, we can see that the decline in the metric is primarily
 driven by the male group. We call this visualization the “Theseus Plot.”
@@ -56,9 +56,20 @@ remotes::install_github("hoxo-m/Theseus")
 
 ## 3. Details
 
-This is a basic example which shows you how to solve a common problem:
-
 ### 3.1 Prepare Data
+
+We use the 2013 New York City flight data from
+[nycflights13](https://cran.r-project.org/package=nycflights13) as a
+demo dataset. Here, the rate metric is the proportion of flights that
+arrived on time. In December 2013, the on-time arrival rate dropped
+substantially compared to November. We investigate the cause using a
+Theseus plot.
+
+First, we create an `on_time` column in the data frame to indicate
+whether each flight arrived on time. Next, we extract the flights for
+November and December into separate data frames to form two comparison
+groups. The on-time arrival rate was 64% in November and dropped to 47%
+in December.
 
 ``` r
 library(dplyr)
@@ -66,9 +77,9 @@ library(nycflights13)
 
 data <- flights |> 
   filter(!is.na(arr_delay)) |>
-  mutate(on_time = arr_delay <= 0) |>  # arrived on time
+  mutate(on_time = arr_delay <= 0) |>  # Arrived on time
   left_join(airlines, by = "carrier") |>
-  mutate(carrier = name) |>
+  mutate(carrier = name) |>  # Convert carrier abbreviations to full names
   select(year, month, day, origin, dest, carrier, dep_delay, on_time)
 
 data |> head()
@@ -82,20 +93,57 @@ data |> head()
 #> 5  2013     1     1 LGA    ATL   Delta Air Lines Inc.          -6 TRUE   
 #> 6  2013     1     1 EWR    ORD   United Air Lines Inc.         -4 FALSE
 
-data1 <- data |> filter(month == 11)
-data2 <- data |> filter(month == 12)
+data_Nov <- data |> filter(month == 11)
+data_Dec <- data |> filter(month == 12)
 
-data1 |> summarise(on_time_rate = mean(on_time)) |> pull(on_time_rate)
+data_Nov |> summarise(on_time_rate = mean(on_time)) |> pull(on_time_rate)
 #> [1] 0.6426161
-data2 |> summarise(on_time_rate = mean(on_time)) |> pull(on_time_rate)
+data_Dec |> summarise(on_time_rate = mean(on_time)) |> pull(on_time_rate)
 #> [1] 0.4672835
 ```
+
+### 3.2 Basics
+
+Using the two prepared data frames, we first create a ship object.
 
 ``` r
 library(Theseus)
 
-ship <- create_ship(data1, data2, y = on_time, labels = c("2013-11", "2013-12"))
+ship <- create_ship(data_Nov, data_Dec, y = on_time, labels = c("November", "December"))
+```
 
+You can create a Theseus plot by passing column names to the `plot`
+method of a ship object. For example, to create a Theseus plot for the
+airport of origin:
+
+``` r
+ship$plot(origin)
+```
+
+![](man/figures/README-unnamed-chunk-2-1.png)<!-- -->
+
+New York City has three major airports, and Newark Liberty International
+Airport (EWR) accounted for the largest share of the decline in the
+on-time arrival rate.
+
+Note that the number of flights at each airport matters, as a larger
+flight volume is expected to have a greater impact. To make this clear,
+the Theseus plot displays the data size for each group within each
+subgroup as a bar chart. From this, we see that the number of flights is
+similar across airports, allowing for direct comparison of
+contributions.
+
+In summary, a Theseus plot consists of two components:
+
+- A waterfall plot showing how much each subgroup contributed to the
+  change in the metric.
+- A bar chart representing the sample size for each group within each
+  subgroup.
+
+A ship object also provides the `table` method to inspect the exact
+values used in the Theseus plot.
+
+``` r
 ship$table(origin)
 #> # A tibble: 3 × 8
 #>   origin contrib    n1    n2    x1    x2 rate1 rate2
@@ -105,20 +153,54 @@ ship$table(origin)
 #> 3 LGA    -0.0358  8723  8687  5379  4393 0.617 0.506
 ```
 
-``` r
-ship$plot(origin)
-```
+### 3.3 Flipping the Plot
 
-<img src="man/figures/README-unnamed-chunk-3-1.png" width="500" />
+When there are many subgroups, a Theseus plot can become hard to read.
+In such cases, you can swap the x- and y-axes for better visualization.
 
 ``` r
 ship$plot_flip(carrier)
 ```
 
-<img src="man/figures/README-unnamed-chunk-4-1.png" width="500" />
+![](man/figures/README-unnamed-chunk-4-1.png)<!-- -->
+
+When the number of subgroups is large, those with small contributions
+are automatically grouped together. By default, this happens when there
+are more than 10 subgroups, but the threshold can be adjusted with the n
+argument.
+
+``` r
+ship$plot_flip(carrier, n = 5)
+```
+
+![](man/figures/README-unnamed-chunk-5-1.png)<!-- -->
+
+From this plot, JetBlue Airways and United Air Lines appear to have the
+largest contributions.
+
+### 3.4 Automatic Discretization of Continuous Values
+
+Theseus plots do not directly support continuous variables. If a
+continuous column is provided, it is automatically discretized. As an
+example, let’s create a Theseus plot for departure delays.
 
 ``` r
 ship$plot_flip(dep_delay)
 ```
 
-<img src="man/figures/README-unnamed-chunk-5-1.png" width="500" />
+![](man/figures/README-unnamed-chunk-6-1.png)<!-- -->
+
+By default, continuous variables are discretized so that each subgroup
+has roughly equal sample size, with the default number of bins set to
+10. You can change these settings by passing a continuous_config object
+to the continuous argument.
+
+``` r
+ship$plot_flip(dep_delay, continuous = continuous_config(n = 5))
+```
+
+![](man/figures/README-unnamed-chunk-7-1.png)<!-- -->
+
+From this result, we see that fewer flights departed on time, and that
+an increase in flights with delayed departures contributed to the
+decline in on-time arrival rates.

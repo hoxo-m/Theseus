@@ -11,13 +11,15 @@ ShipOfTheseus <- R6::R6Class(
     compute_contribution = NULL,
     compute_info = NULL,
     compute_size = NULL,
-    digits = NULL
+    ylab = NULL,
+    digits = NULL,
+    text_size = NULL
   ),
 
   public = list(
 
     #' @importFrom forcats fct_na_value_to_level
-    initialize = function(data1, data2, outcome, labels, digits) {
+    initialize = function(data1, data2, outcome, labels, ylab, digits, text_size) {
       outcome <- rlang::quo_squash(outcome) |> rlang::as_string()
 
       data1 <- data1 |>
@@ -30,7 +32,9 @@ ShipOfTheseus <- R6::R6Class(
         rename(.outcome = !!rlang::sym(outcome))
 
       private$labels <- labels
+      private$ylab <- ylab
       private$digits <- digits
+      private$text_size <- text_size
 
       private$compute_scores <- memoise::memoise(function(column_name) {
         score1 <- data1 |> summarise(score = mean(.outcome)) |> pull(score)
@@ -283,7 +287,7 @@ ShipOfTheseus <- R6::R6Class(
 
       p <- waterfalls::waterfall(
         result, calc_total = TRUE, total_axis_text = labels[2],
-        total_rect_text_color = "black", total_rect_color = "#00BFC4")
+        total_rect_text_color = "black", total_rect_color = "#00BFC4", rect_text_size = private$text_size)
 
       if (is.null(main_item) & is.null(bar_max_value)) {
         data_max <- result |> tail(-1) |> filter(abs(contrib) == max(abs(contrib)))
@@ -309,7 +313,9 @@ ShipOfTheseus <- R6::R6Class(
         geom_col(data = data_size, aes(x, n, fill = type), width = 0.7, position = position_dodge()) +
         scale_fill_manual(values = c("#7CAE00", "#C77CFF"), guide = "none")
       p$layers <- append(head(p$layers, -1), tail(p$layers, 1), 1)
-      p + ggplot2::ggtitle(NULL, subtitle = column_name)
+      p + ggplot2::ggtitle(NULL, subtitle = column_name) +
+        ggplot2::theme_gray(private$text_size * 11) +
+        ggplot2::xlab(NULL) + ggplot2::ylab(private$ylab)
     },
 
     plot_flip = function(column_name, n = 10L, main_item = NULL, bar_max_value = NULL,
@@ -346,7 +352,8 @@ ShipOfTheseus <- R6::R6Class(
       p <- waterfalls::waterfall(
         result, calc_total = TRUE, total_axis_text = labels[1],
         total_rect_text_color = "black", fill_colours = colors,
-        fill_by_sign = FALSE, total_rect_color = "#00BFC4") +
+        fill_by_sign = FALSE, total_rect_color = "#00BFC4",
+        rect_text_size = private$text_size) +
         coord_flip()
 
       reverse_sign <- function(x) {
@@ -391,7 +398,10 @@ ShipOfTheseus <- R6::R6Class(
         geom_col(data = data_size, aes(x, n, fill = type), width = 0.7, position = position_dodge()) +
         scale_fill_manual(values = c("#C77CFF", "#7CAE00"), guide = "none")
       p$layers <- append(head(p$layers, -1), tail(p$layers, 1), 1)
-      p + ggplot2::ggtitle(NULL, subtitle = column_name)
+      p + ggplot2::ggtitle(NULL, subtitle = column_name) +
+        ggplot2::theme_gray(private$text_size * 11) +
+        ggplot2::xlab(NULL) + ggplot2::ylab(private$ylab)
+
     },
 
     overhaul = function() {
