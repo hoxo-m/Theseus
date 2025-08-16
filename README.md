@@ -48,7 +48,14 @@ Plots for various attributes.
 
 ## 2. Installation
 
-You can install the development version from GitHub with:
+You can install the **Theseus** package from CRAN.
+
+``` r
+install.packages("Theseus")
+```
+
+You can install the development version from
+[GitHub](https://github.com/hoxo-m/Theseus) with:
 
 ``` r
 remotes::install_github("hoxo-m/Theseus")
