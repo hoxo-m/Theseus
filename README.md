@@ -1,7 +1,7 @@
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
-# Theseus Plot: Visualizing Changes through Replacement in Rate Metrics
+# Theseus Plot: Visualizing Decomposition of Differences in Rate Metrics
 
 <!-- badges: start -->
 
@@ -120,7 +120,7 @@ airport of origin:
 ship$plot(origin)
 ```
 
-![](man/figures/README-unnamed-chunk-2-1.png)<!-- -->
+![](man/figures/README-plot_origin-1.png)<!-- -->
 
 New York City has three major airports, and Newark Liberty International
 Airport (EWR) accounted for the largest share of the decline in the
@@ -162,7 +162,7 @@ In such cases, you can swap the x- and y-axes for better visualization.
 ship$plot_flip(carrier)
 ```
 
-![](man/figures/README-unnamed-chunk-4-1.png)<!-- -->
+![](man/figures/README-plot_carrier-1.png)<!-- -->
 
 When the number of subgroups is large, those with small contributions
 are automatically grouped together. By default, this happens when there
@@ -173,7 +173,7 @@ argument.
 ship$plot_flip(carrier, n = 5)
 ```
 
-![](man/figures/README-unnamed-chunk-5-1.png)<!-- -->
+![](man/figures/README-prot_carrier_n-1.png)<!-- -->
 
 From this plot, JetBlue Airways and United Air Lines appear to have the
 largest contributions.
@@ -188,7 +188,7 @@ example, let’s create a Theseus plot for departure delays.
 ship$plot_flip(dep_delay)
 ```
 
-![](man/figures/README-unnamed-chunk-6-1.png)<!-- -->
+![](man/figures/README-plot_dep_delay-1.png)<!-- -->
 
 By default, continuous variables are discretized so that each subgroup
 has roughly equal sample size, with the default number of bins set to
@@ -199,7 +199,7 @@ to the continuous argument.
 ship$plot_flip(dep_delay, continuous = continuous_config(n = 5))
 ```
 
-![](man/figures/README-unnamed-chunk-7-1.png)<!-- -->
+![](man/figures/README-plot_dep_delay_n-1.png)<!-- -->
 
 From this result, we see that fewer flights departed on time, and that
 an increase in flights with delayed departures contributed to the
