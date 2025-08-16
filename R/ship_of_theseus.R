@@ -1,3 +1,11 @@
+#' An R6 Class for Generating Theseus Plot
+#'
+#' @description
+#' The `ShipOfTheseus` class decomposes the difference in outcome rates between
+#' two datasets and visualizes the results as a Theseus Plot. It provides methods
+#' to compute contributions of individual attributes, summarize results in tables,
+#' and generate waterfall-style plots for intuitive interpretation.
+#'
 #' @import dplyr ggplot2 stringr
 #'
 #' @export
@@ -17,7 +25,29 @@ ShipOfTheseus <- R6::R6Class(
   ),
 
   public = list(
-
+    #' @description
+    #' The constructor of the ShipOfTheseus class.
+    #'
+    #' @param data1 data frame representing the first group (e.g., the baseline or
+    #'   "original" data).
+    #' @param data2 data frame representing the second group (e.g., the comparison
+    #'   or "refitted" data).
+    #' @param outcome string specifying the outcome variable used to compute the rate
+    #'   metric (default is "y"). Typically, this is a binary indicator (e.g., 0/1)
+    #'   that is aggregated to form rates.
+    #' @param labels character vector of length 2 giving the labels for the two
+    #'   groups. The first corresponds to `data1`, the second to `data2`. Default is
+    #'   c("Original", "Refitted").
+    #' @param ylab string specifying the y-axis label for plots. If NULL (default),
+    #'   no label is displayed.
+    #' @param digits integer indicating the number of decimal places to use for
+    #'   displaying numeric values (default is 3).
+    #' @param text_size numeric value specifying the relative size of text elements
+    #'   in plots (default is 1).
+    #'
+    #' @return A ShipOfTheseus object, which can be used with \code{plot()} to
+    #'   create Theseus plots.
+    #'
     #' @importFrom forcats fct_na_value_to_level
     initialize = function(data1, data2, outcome, labels, ylab, digits, text_size) {
       outcome <- rlang::quo_squash(outcome) |> rlang::as_string()
@@ -220,8 +250,19 @@ ShipOfTheseus <- R6::R6Class(
 
     },
 
-    table = function(column_name, n = Inf,
-                     continuous = continuous_config()) {
+    #' @description
+    #' Generate a contribution table for a given column.
+    #'
+    #' @param column_name string. The name of the column to analyze.
+    #' @param n integer. Maximum number of top contributing attributes to display.
+    #'   If the number of attributes exceeds `n`, the remaining are aggregated.
+    #' @param continuous list. A configuration list for handling continuous
+    #'   variables (e.g., specifying number of bins or custom breaks).
+    #'
+    #' @return A tibble summarizing each attribute's contribution to the
+    #'   difference between the two groups, including counts, total outcomes,
+    #'   and rates for each subgroup.
+    table = function(column_name, n = Inf, continuous = continuous_config()) {
       column_name <- rlang::ensym(column_name) |> rlang::as_string()
       data_contrib <- private$compute_contribution(column_name, continuous)
       data_info <- private$compute_info(column_name, continuous)
@@ -257,6 +298,20 @@ ShipOfTheseus <- R6::R6Class(
       result
     },
 
+    #' @description
+    #' Generate a Theseus plot for a specified column
+    #'
+    #' @param column_name The name of the column to visualize.
+    #' @param n integer. Maximum number of top contributing attributes to display.
+    #'   Remaining attributes are aggregated if necessary.
+    #' @param main_item string. The attribute used as the reference for scaling
+    #'   the bar heights.
+    #' @param bar_max_value numeric. Maximum value for scaling the contribution bars.
+    #' @param levels character vector specifying the display order of attributes.
+    #' @param continuous list. Configuration for handling continuous variables
+    #'   (e.g., number of bins or custom breaks).
+    #'
+    #' @return A ggplot object representing the Theseus Plot for the specified column.
     plot = function(column_name, n = 10L, main_item = NULL, bar_max_value = NULL,
                     levels = NULL, continuous = continuous_config()) {
       column_name <- rlang::ensym(column_name) |> rlang::as_string()
@@ -318,6 +373,20 @@ ShipOfTheseus <- R6::R6Class(
         ggplot2::xlab(NULL) + ggplot2::ylab(private$ylab)
     },
 
+    #' @description
+    #' Generate a Theseus plot for a specified column
+    #'
+    #' @param column_name The name of the column to visualize.
+    #' @param n integer. Maximum number of top contributing attributes to display.
+    #'   Remaining attributes are aggregated if necessary.
+    #' @param main_item string. The attribute used as the reference for scaling
+    #'   the bar heights.
+    #' @param bar_max_value numeric. Maximum value for scaling the contribution bars.
+    #' @param levels character vector specifying the display order of attributes.
+    #' @param continuous list. Configuration for handling continuous variables
+    #'   (e.g., number of bins or custom breaks).
+    #'
+    #' @return A ggplot object representing the Theseus Plot for the specified column.
     plot_flip = function(column_name, n = 10L, main_item = NULL, bar_max_value = NULL,
                          levels = NULL, continuous = continuous_config()) {
       column_name <- rlang::ensym(column_name) |> rlang::as_string()
@@ -401,35 +470,6 @@ ShipOfTheseus <- R6::R6Class(
       p + ggplot2::ggtitle(NULL, subtitle = column_name) +
         ggplot2::theme_gray(private$text_size * 11) +
         ggplot2::xlab(NULL) + ggplot2::ylab(private$ylab)
-
-    },
-
-    overhaul = function() {
-      data1 <- private$data1 |>
-        select_if(~ is.character(.x) | is.factor(.x))
-      data2 <- private$data2 |>
-        select_if(~ is.character(.x) | is.factor(.x))
-
-      vars1 <- names(data1)
-      vars2 <- names(data2)
-
-      vars <- intersect(vars1, vars2)
-
-      result <- tibble::tibble()
-      pb <- txtProgressBar(max = length(vars), style = 3L)
-      for (i in seq_along(vars)) {
-        var <- vars[i]
-        if (var == "y") next
-        t <- ship$table(!!rlang::sym(var)) |>
-          mutate(score = abs(mean / (size1 + size2))) |>
-          arrange(desc(score))
-        res <- t |> head(1) |> mutate(var = var) |> select(var, everything())
-        result <- rbind(result, res)
-        setTxtProgressBar(pb, i)
-      }
-      close(pb)
-
-      result |> arrange(desc(score))
     }
   )
 )
