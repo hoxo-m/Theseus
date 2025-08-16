@@ -1,6 +1,6 @@
 Type: Package
 Package: Theseus
-Title: Theseus Plot: Visualizing Decomposition of Differences in Rate Metrics
+Title: Visualizing Decomposition of Differences in Rate Metrics
 Version: 0.0.0.9001
 Authors@R: c(
     person("Koji", "Makiyama", , "hoxo.smile@gmail.com", role = c("aut", "cre", "cph")),

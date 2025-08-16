@@ -39,7 +39,7 @@ displaying numeric values (default is 3).}
 in plots (default is 1).}
 }
 \value{
-A ShipOfTheseus object, which can be used with \code{plot()} to
+A \link{ShipOfTheseus} object, which can be used with \code{plot()} to
   create Theseus plots.
 }
 \description{

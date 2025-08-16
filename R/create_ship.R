@@ -21,8 +21,8 @@
 #' @param text_size numeric value specifying the relative size of text elements
 #'   in plots (default is 1).
 #'
-#' @return A ShipOfTheseus object, which can be used with \code{plot()} to
-#'   create Theseus plots.
+#' @return A \link{ShipOfTheseus} object, which can be used with \code{plot()}
+#'   to create Theseus plots.
 #'
 #' @examples
 #' library(dplyr)
