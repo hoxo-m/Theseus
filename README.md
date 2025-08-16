@@ -176,7 +176,7 @@ ship$plot_flip(carrier, n = 5)
 ![](man/figures/README-prot_carrier_n-1.png)<!-- -->
 
 From this plot, JetBlue Airways and United Air Lines appear to have the
-largest contributions.
+largest contributions to the decline in on-time arrival rate.
 
 ### 3.4 Automatic Discretization of Continuous Values
 
@@ -201,6 +201,6 @@ ship$plot_flip(dep_delay, continuous = continuous_config(n = 5))
 
 ![](man/figures/README-plot_dep_delay_n-1.png)<!-- -->
 
-From this result, we see that fewer flights departed on time, and that
-an increase in flights with delayed departures contributed to the
-decline in on-time arrival rates.
+This result shows that both a decrease in on-time departures and an
+increase in delayed departures contributed to the decline in on-time
+arrival rate.

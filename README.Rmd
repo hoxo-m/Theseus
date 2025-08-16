@@ -160,7 +160,7 @@ By default, this happens when there are more than 10 subgroups, but the threshol
 ship$plot_flip(carrier, n = 5)
 ```
 
-From this plot, JetBlue Airways and United Air Lines appear to have the largest contributions.
+From this plot, JetBlue Airways and United Air Lines appear to have the largest contributions to the decline in on-time arrival rate.
 
 ### 3.4 Automatic Discretization of Continuous Values
 
@@ -179,4 +179,4 @@ You can change these settings by passing a continuous_config object to the conti
 ship$plot_flip(dep_delay, continuous = continuous_config(n = 5))
 ```
 
-From this result, we see that fewer flights departed on time, and that an increase in flights with delayed departures contributed to the decline in on-time arrival rates.
+This result shows that both a decrease in on-time departures and an increase in delayed departures contributed to the decline in on-time arrival rate.
