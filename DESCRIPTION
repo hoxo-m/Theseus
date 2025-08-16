@@ -1,5 +1,5 @@
 Type: Package
-Package: Theseus
+Package: TheseusPlot
 Title: Visualizing Decomposition of Differences in Rate Metrics
 Version: 0.0.0.9001
 Authors@R: c(
@@ -10,8 +10,8 @@ Authors@R: c(
 Description: Provides Theseus plots, a visualization tool for decomposing
     differences in rate metrics into subgroup contributions.
 License: MIT + file LICENSE
-URL: https://github.com/hoxo-m/Theseus
-BugReports: https://github.com/hoxo-m/Theseus/issues
+URL: https://github.com/hoxo-m/TheseusPlot
+BugReports: https://github.com/hoxo-m/TheseusPlot/issues
 Depends:
     R (>= 4.1.0)
 Imports:

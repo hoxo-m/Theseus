@@ -43,34 +43,37 @@ When visualized, the results appear as follows:
 From this plot, we can see that the decline in the metric is primarily
 driven by the male group. We call this visualization the “Theseus Plot.”
 
-The **Theseus** package is designed to make it easy to generate Theseus
-Plots for various attributes.
+The **TheseusPlot** package is designed to make it easy to generate
+Theseus Plots for various attributes.
 
 ## 2. Installation
 
-You can install the **Theseus** package from CRAN.
+You can install the **TheseusPlot** package from CRAN.
 
 ``` r
-install.packages("Theseus")
+install.packages("TheseusPlot")
 ```
 
 You can install the development version from
-[GitHub](https://github.com/hoxo-m/Theseus) with:
+[GitHub](https://github.com/hoxo-m/TheseusPlot) with:
 
 ``` r
-remotes::install_github("hoxo-m/Theseus")
+remotes::install_github("hoxo-m/TheseusPlot")
 ```
 
 ## 3. Details
 
 ### 3.1 Prepare Data
 
+To create Theseus plots, you need two data frames that share common
+columns.
+
 We use the 2013 New York City flight data from
 [nycflights13](https://cran.r-project.org/package=nycflights13) as a
-demo dataset. Here, the rate metric is the proportion of flights that
-arrived on time. In December 2013, the on-time arrival rate dropped
-substantially compared to November. We investigate the cause using a
-Theseus plot.
+demo dataset. Here, we will define the rate metric as the proportion of
+flights that arrived on time. In December 2013, the on-time arrival rate
+dropped substantially compared to November. We investigate the cause
+using a Theseus plot.
 
 First, we create an `on_time` column in the data frame to indicate
 whether each flight arrived on time. Next, we extract the flights for
@@ -111,7 +114,9 @@ data_Dec |> summarise(on_time_rate = mean(on_time)) |> pull(on_time_rate)
 
 ### 3.2 Basics
 
-Using the two prepared data frames, we first create a ship object.
+Using the two prepared data frames, we first create a `ship` object. The
+`ship` object is an instance of the R6 class `ShipOfTheseus`, designed
+to create Theseus plots.
 
 ``` r
 library(Theseus)
@@ -120,7 +125,7 @@ ship <- create_ship(data_Nov, data_Dec, y = on_time, labels = c("November", "Dec
 ```
 
 You can create a Theseus plot by passing column names to the `plot`
-method of a ship object. For example, to create a Theseus plot for the
+method of a `ship` object. For example, to create a Theseus plot for the
 airport of origin:
 
 ``` r
@@ -147,7 +152,7 @@ In summary, a Theseus plot consists of two components:
 - A bar chart representing the sample size for each group within each
   subgroup.
 
-A ship object also provides the `table` method to inspect the exact
+A `ship` object also provides the `table` method to inspect the exact
 values used in the Theseus plot.
 
 ``` r
@@ -173,8 +178,8 @@ ship$plot_flip(carrier)
 
 When the number of subgroups is large, those with small contributions
 are automatically grouped together. By default, this happens when there
-are more than 10 subgroups, but the threshold can be adjusted with the n
-argument.
+are more than 10 subgroups, but the threshold can be adjusted with the
+`n` argument.
 
 ``` r
 ship$plot_flip(carrier, n = 5)
@@ -188,8 +193,8 @@ largest contributions to the decline in on-time arrival rate.
 ### 3.4 Automatic Discretization of Continuous Values
 
 Theseus plots do not directly support continuous variables. If a
-continuous column is provided, it is automatically discretized. As an
-example, let’s create a Theseus plot for departure delays.
+continuous column is provided, it is automatically discretized. For
+example, we can create a Theseus plot for departure delays.
 
 ``` r
 ship$plot_flip(dep_delay)
@@ -198,9 +203,9 @@ ship$plot_flip(dep_delay)
 ![](man/figures/README-plot_dep_delay-1.png)<!-- -->
 
 By default, continuous variables are discretized so that each subgroup
-has roughly equal sample size, with the default number of bins set to
-10. You can change these settings by passing a continuous_config object
-to the continuous argument.
+has roughly equal sample sizes, with the number of bins set to 10. You
+can modify these settings by passing the return value of
+`continuous_config()` to the `continuous` argument.
 
 ``` r
 ship$plot_flip(dep_delay, continuous = continuous_config(n = 5))

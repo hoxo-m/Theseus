@@ -26,6 +26,7 @@
 #'
 #' @examples
 #' library(dplyr)
+#' library(TheseusPlot)
 #'
 #' data <- nycflights13::flights |>
 #'   filter(!is.na(arr_delay)) |>

@@ -39,8 +39,8 @@ displaying numeric values (default is 3).}
 in plots (default is 1).}
 }
 \value{
-A \link{ShipOfTheseus} object, which can be used with \code{plot()} to
-  create Theseus plots.
+A \link{ShipOfTheseus} object, which can be used with \code{plot()}
+  to create Theseus plots.
 }
 \description{
 Creates a ship object, which serves as a container for data and methods to
@@ -48,6 +48,7 @@ generate Theseus plots for decomposing differences in rate metrics.
 }
 \examples{
 library(dplyr)
+library(TheseusPlot)
 
 data <- nycflights13::flights |>
   filter(!is.na(arr_delay)) |>

@@ -17,6 +17,7 @@
 #'   to be used in plotting or contribution calculations for continuous variables.
 #'
 #' @examples
+#' library(TheseusPlot)
 #' continuous_config(n = 5, pretty = FALSE, split = "rate")
 #'
 #' @export

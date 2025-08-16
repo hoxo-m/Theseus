@@ -33,6 +33,7 @@ continuous variables in Theseus Plots. It controls how continuous data is binned
 into discrete categories for contribution calculations and visualization.
 }
 \examples{
+library(TheseusPlot)
 continuous_config(n = 5, pretty = FALSE, split = "rate")
 
 }
