@@ -31,7 +31,7 @@ compute_breaks <- function(values, break_num = 10L) {
   if (any(is.na(values))) {
     break_num <- break_num - 1L
   }
-  breaks <- quantile(values, probs = seq(0, 1, length.out = break_num + 1), na.rm = TRUE)
+  breaks <- stats::quantile(values, probs = seq(0, 1, length.out = break_num + 1), na.rm = TRUE)
   breaks <- unname(breaks)
   breaks
 }

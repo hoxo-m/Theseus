@@ -1,3 +1,6 @@
+#' @importFrom R6 R6Class
+NULL
+
 #' An R6 Class for Generating Theseus Plot
 #'
 #' @description
@@ -49,6 +52,9 @@ ShipOfTheseus <- R6::R6Class(
     #'   create Theseus plots.
     #'
     #' @importFrom forcats fct_na_value_to_level
+    #' @importFrom memoise memoise
+    #' @importFrom tibble tibble
+    #' @importFrom tidyr replace_na
     initialize = function(data1, data2, outcome, labels, ylab, digits, text_size) {
       outcome <- rlang::quo_squash(outcome) |> rlang::as_string()
 
@@ -312,6 +318,10 @@ ShipOfTheseus <- R6::R6Class(
     #'   (e.g., number of bins or custom breaks).
     #'
     #' @return A ggplot object representing the Theseus Plot for the specified column.
+    #'
+    #' @importFrom tidyr replace_na
+    #' @importFrom tibble tibble
+    #' @importFrom waterfalls waterfall
     plot = function(column_name, n = 10L, main_item = NULL, bar_max_value = NULL,
                     levels = NULL, continuous = continuous_config()) {
       column_name <- rlang::ensym(column_name) |> rlang::as_string()
@@ -387,6 +397,10 @@ ShipOfTheseus <- R6::R6Class(
     #'   (e.g., number of bins or custom breaks).
     #'
     #' @return A ggplot object representing the Theseus Plot for the specified column.
+    #'
+    #' @importFrom tidyr replace_na
+    #' @importFrom tibble tibble
+    #' @importFrom waterfalls waterfall
     plot_flip = function(column_name, n = 10L, main_item = NULL, bar_max_value = NULL,
                          levels = NULL, continuous = continuous_config()) {
       column_name <- rlang::ensym(column_name) |> rlang::as_string()
