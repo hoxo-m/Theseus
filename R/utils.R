@@ -1,20 +1,24 @@
 #' Continuous Variable Configuration for Theseus Plot
 #'
 #' @description
-#' The `continuous_config()` function creates a configuration object for handling
-#' continuous variables in Theseus Plots. It controls how continuous data is binned
-#' into discrete categories for contribution calculations and visualization.
+#' The \code{continuous_config()} function creates a configuration object for
+#' handling continuous variables in Theseus plots. It controls how continuous
+#' data is binned into discrete categories for contribution calculations and
+#' visualization.
 #'
 #' @param n integer. Number of bins to create for a continuous variable.
 #' @param pretty logical. If TRUE, use pretty breaks for bin edges.
 #' @param split string. Method for binning continuous variables. Options are:
-#'   - "count": divide the variable into bins with roughly equal number of observations.
-#'   - "width": divide the range of the variable into equal-width bins.
-#'   - "rate": divide based on differences in outcome rates between bins.
+#' \describe{
+#'   \item{\code{"count"}}{divide the variable into bins with roughly equal number of observations.}
+#'   \item{\code{"width"}}{divide the range of the variable into equal-width bins.}
+#'   \item{\code{"rate"}}{divide based on differences in outcome rates between bins.}
+#' }
 #' @param breaks numeric vector specifying custom break points.
 #'
-#' @return A list containing binning parameters (`n`, `pretty`, `split`, `breaks`)
-#'   to be used in plotting or contribution calculations for continuous variables.
+#' @return A list containing binning parameters (\code{n}, \code{pretty},
+#'   \code{split}, \code{breaks}) to be used in plotting or contribution
+#'   calculations for continuous variables.
 #'
 #' @examples
 #' library(TheseusPlot)
