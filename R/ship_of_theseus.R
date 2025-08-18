@@ -378,8 +378,9 @@ ShipOfTheseus <- R6::R6Class(
         geom_col(data = data_size, aes(x, n, fill = type), width = 0.7, position = position_dodge()) +
         scale_fill_manual(values = c("#7CAE00", "#C77CFF"), guide = "none")
       p$layers <- append(head(p$layers, -1), tail(p$layers, 1), 1)
+      theme <- ggplot2::theme_get()
       p + ggplot2::ggtitle(NULL, subtitle = column_name) +
-        ggplot2::theme_gray(private$text_size * 11) +
+        theme(private$text_size * 11) +
         ggplot2::xlab(NULL) + ggplot2::ylab(private$ylab)
     },
 
@@ -481,8 +482,9 @@ ShipOfTheseus <- R6::R6Class(
         geom_col(data = data_size, aes(x, n, fill = type), width = 0.7, position = position_dodge()) +
         scale_fill_manual(values = c("#C77CFF", "#7CAE00"), guide = "none")
       p$layers <- append(head(p$layers, -1), tail(p$layers, 1), 1)
+      theme <- ggplot2::theme_get()
       p + ggplot2::ggtitle(NULL, subtitle = column_name) +
-        ggplot2::theme_gray(private$text_size * 11) +
+        theme(private$text_size * 11) +
         ggplot2::xlab(NULL) + ggplot2::ylab(private$ylab)
     }
   )

@@ -119,7 +119,7 @@ Using the two prepared data frames, we first create a `ship` object. The
 to create Theseus plots.
 
 ``` r
-library(Theseus)
+library(TheseusPlot)
 
 ship <- create_ship(data_Nov, data_Dec, y = on_time, labels = c("November", "December"))
 ```
