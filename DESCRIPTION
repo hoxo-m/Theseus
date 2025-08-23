@@ -1,15 +1,21 @@
 Type: Package
 Package: TheseusPlot
 Title: Visualizing Decomposition of Differences in Rate Metrics
-Version: 0.1.0
+Version: 0.1.1
 Authors@R: c(
     person("Koji", "Makiyama", , "hoxo.smile@gmail.com", role = c("aut", "cre", "cph")),
     person("Shinichi", "Takayanagi", , "shinichi.takayanagi@gmail.com", role = "med"),
     person("Daisuke", "Ichikawa", role = "exp"),
     person("LY Corporation Analytics Solution Enhancement Team", role = "spn")
   )
-Description: Provides Theseus plots, a visualization tool for decomposing
-    differences in rate metrics into subgroup contributions.
+Description: Provides tools for decomposing differences in rate metrics between
+    two groups into contributions from individual subgroups and visualizing them
+    as a "Theseus Plot". Inspired by the story of the Ship of Theseus, the method
+    replaces subgroup data from one group with that of another step by step,
+    recalculating the overall metric at each stage to quantify subgroup contributions.
+    A Theseus Plot combines the stepwise progression of a waterfall plot with
+    the comparative bars of a bar chart, offering an intuitive way to understand
+    subgroup-level effects.
 License: MIT + file LICENSE
 URL: https://github.com/hoxo-m/TheseusPlot
 BugReports: https://github.com/hoxo-m/TheseusPlot/issues
