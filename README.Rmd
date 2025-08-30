@@ -19,6 +19,8 @@ knitr::opts_chunk$set(
 # Theseus Plot: Visualizing Decomposition of Differences in Rate Metrics
 
 <!-- badges: start -->
+[![CRAN-version](https://www.r-pkg.org/badges/version/TheseusPlot)](https://cran.r-project.org/package=TheseusPlot)
+[![CRAN-downloads](https://cranlogs.r-pkg.org/badges/TheseusPlot)](https://cran.r-project.org/package=TheseusPlot)
 <!-- badges: end -->
 
 ## 1. Overview
@@ -71,7 +73,7 @@ The **TheseusPlot** package is designed to make it easy to generate Theseus Plot
 
 ## 2. Installation
 
-You can install the **TheseusPlot** package from CRAN.
+You can install the **TheseusPlot** package from [CRAN](https://cran.r-project.org/package=TheseusPlot).
 
 ```r
 install.packages("TheseusPlot")

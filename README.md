@@ -5,6 +5,8 @@
 
 <!-- badges: start -->
 
+[![CRAN-version](https://www.r-pkg.org/badges/version/TheseusPlot)](https://cran.r-project.org/package=TheseusPlot)
+[![CRAN-downloads](https://cranlogs.r-pkg.org/badges/TheseusPlot)](https://cran.r-project.org/package=TheseusPlot)
 <!-- badges: end -->
 
 ## 1. Overview
@@ -48,7 +50,8 @@ Theseus Plots for various attributes.
 
 ## 2. Installation
 
-You can install the **TheseusPlot** package from CRAN.
+You can install the **TheseusPlot** package from
+[CRAN](https://cran.r-project.org/package=TheseusPlot).
 
 ``` r
 install.packages("TheseusPlot")
