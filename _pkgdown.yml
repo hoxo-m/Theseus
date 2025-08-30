@@ -1,0 +1,15 @@
+url: https://hoxo-m.github.io/TheseusPlot/
+
+authors:
+  Koji Makiyama:
+    href: https://hoxo-m.github.io/blog/
+
+template:
+  bootstrap: 5
+  math-rendering: mathjax
+  light-switch: true
+
+news:
+  releases:
+  - text: "Version 0.1.1"
+    href: https://hoxo-m.github.io/blog/posts/TheseusPlot/

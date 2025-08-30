@@ -17,7 +17,7 @@ Description: Provides tools for decomposing differences in rate metrics between
     the comparative bars of a bar chart, offering an intuitive way to understand
     subgroup-level effects.
 License: MIT + file LICENSE
-URL: https://github.com/hoxo-m/TheseusPlot
+URL: https://github.com/hoxo-m/TheseusPlot, https://hoxo-m.github.io/TheseusPlot/
 BugReports: https://github.com/hoxo-m/TheseusPlot/issues
 Depends:
     R (>= 4.1.0)
