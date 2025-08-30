@@ -1,3 +1,5 @@
-# TheseusPlot 0.1.0
+# TheseusPlot (development version)
+
+# TheseusPlot 0.1.1
 
 * Initial CRAN submission.
